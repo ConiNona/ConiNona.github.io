@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drawings · Constanza Kostyushko</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Anton&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #f5ead0;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: #2a1f15;
+      overflow-x: hidden;
+    }
+    ::selection { background: #4a4540; color: #f5ead0; }
+    ::-webkit-scrollbar { width: 7px; }
+    ::-webkit-scrollbar-track { background: #f5ead0; }
+    ::-webkit-scrollbar-thumb { background: #4a4540; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2a1f15; }
+
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9000;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      opacity: 0.16; mix-blend-mode: multiply;
+    }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes drawLine { from { stroke-dashoffset: 1500; } to { stroke-dashoffset: 0; } }
+    @keyframes scribbleIn { from { stroke-dashoffset: 800; opacity: 0; } to { stroke-dashoffset: 0; opacity: 0.85; } }
+    @keyframes float { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-6px)} }
+
+    .serif   { font-family: 'Cormorant Garamond', serif; }
+    .display { font-family: 'Playfair Display', serif; }
+    .hand    { font-family: 'Caveat', cursive; }
+    .anton   { font-family: 'Anton', sans-serif; }
+
+    /* anti theft helpers */
+    .protected { -webkit-user-select: none; user-select: none; }
+    .protected img { -webkit-user-select: none; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useContext, createContext } = React;
+
+    const C = {
+      paper:    "#f5ead0",
+      paperSoft:"#faf3df",
+      paperDeep:"#e8d8b0",
+      ink:      "#2a1f15",
+      inkSoft:  "#5a4630",
+      mute:     "#8a7559",
+      faded:    "#b0a280",
+      graphite: "#4a4540",
+      graphiteSoft: "#6b6560",
+      gold:     "#9b7228",
+      goldSoft: "#c89640",
+      red:      "#8a2a1a",
+      line:     "#d4c4a0",
+    };
+
+    /* All graphite pieces with their filenames, true orientations, layout spans, and rotations.
+       Self portrait sits at position 12/17 as requested. */
+    const PIECES = [
+      // 01 — Aduana spotlight (full width)
+      { src: "La Aduana - Dibujo de grafito.jpg", en: "La Aduana",          es: "La Aduana",          ratio: "4 / 3", span: 12, rot: 0, featured: true,
+        meta_en: "A3 · graphite · 7.5 hours, two nights", meta_es: "A3 · grafito · 7,5 horas en dos noches" },
+      // 02, 03, 04 — prized portrait + first favourites (3 V)
+      { src: "graphite-featured.jpg",   en: "The earring",        es: "El aro",            ratio: "3 / 4", span: 4, rot: -2, featured: true,
+        meta_en: "graphite · portrait study", meta_es: "grafito · estudio de retrato" },
+      { src: "graphite-torso.jpg",      en: "Torso",              es: "Torso",             ratio: "3 / 4", span: 4, rot: 2,
+        meta_en: "live drawing study", meta_es: "estudio del natural" },
+      { src: "graphite-2.jpg",          en: "Looking down",       es: "Mirando abajo",     ratio: "3 / 4", span: 4, rot: -1 },
+      // 05, 06 — favourite horizontals
+      { src: "graphite-9.jpg",          en: "Reclining figure",   es: "Figura reclinada",  ratio: "4 / 3", span: 6, rot: -2,
+        meta_en: "study of the human body", meta_es: "estudio del cuerpo humano" },
+      { src: "graphite-13.jpg",         en: "Paper crane",        es: "Grulla de papel",   ratio: "4 / 3", span: 6, rot: 1 },
+      // 07, 08, 09 — portraits + pointe + draped
+      { src: "graphite-5.jpg",          en: "Child and puppy",    es: "Niña con cachorro", ratio: "3 / 4", span: 4, rot: -2 },
+      { src: "graphite-3.jpg",          en: "Pointe shoes",       es: "Puntas de ballet",  ratio: "3 / 4", span: 4, rot: 1 },
+      { src: "graphite-4.jpg",          en: "Draped figure",      es: "Figura cubierta",   ratio: "3 / 4", span: 4, rot: -1 },
+      // 10, 11, 12 — architecture + classical + self portrait at slot 12
+      { src: "graphite-7.jpg",          en: "Baroque cartouche",  es: "Cartela barroca",   ratio: "3 / 4", span: 4, rot: 3 },
+      { src: "graphite-12.jpg",         en: "Classical head",     es: "Cabeza clásica",    ratio: "3 / 4", span: 4, rot: -2,
+        meta_en: "line study", meta_es: "estudio en líneas" },
+      { src: "graphite-1.jpg",          en: "Self portrait",      es: "Autorretrato",      ratio: "3 / 4", span: 4, rot: 2 },
+      // 13, 14 — fountain + duck
+      { src: "graphite-6.jpg",          en: "Garden fountain",    es: "Fuente de jardín",  ratio: "4 / 3", span: 6, rot: 1,
+        meta_en: "live drawing study", meta_es: "estudio del natural" },
+      { src: "graphite-10.jpg",         en: "Duck",               es: "Pato",              ratio: "4 / 3", span: 6, rot: -2 },
+      // 15, 16 — texture practice + half face
+      { src: "graphite-14.jpg",         en: "Abstract form",      es: "Forma abstracta",   ratio: "3 / 4", span: 6, rot: -2,
+        meta_en: "texture practice", meta_es: "práctica de texturas" },
+      { src: "graphite-15.jpg",         en: "Half face",          es: "Medio rostro",      ratio: "3 / 4", span: 6, rot: 2 },
+      // 17 — closing piece, centered
+      { src: "graphite-11.jpg",         en: "Woman's body",       es: "Cuerpo de mujer",   ratio: "4 / 3", span: 8, rot: 1,
+        meta_en: "study of the human body", meta_es: "estudio del cuerpo humano" },
+    ];
+
+    const T = {
+      en: {
+        nav: { back: "← back to art portfolio", proj: "drawings." },
+        hero: {
+          title: "everything in pencil.",
+          subtitle: "Seventeen graphite drawings. Some took an hour, some took two nights.",
+          meta: "graphite · paper · 2024 to 2026",
+        },
+        intro: {
+          h: "what I keep coming back to",
+          body: "The pencil is the tool I trust the most, the one I keep coming back to. Building up value slowly, fixing what is wrong by smudging it, watching a single sheet swallow several hours. The drawings collected here are anatomy, portraits, objects I could not stop looking at, and a few that started as exercises and turned into something I wanted to keep.",
+          rule: "Something I try to keep in mind, and sometimes manage to do: no erasers, no mistakes. When a line goes somewhere I did not plan, the drawing can follow.",
+        },
+        sectionTitle: "the gallery",
+        footer: { back: "← back to the rest of the work", credit: "© Constanza Kostyushko · please do not download or reuse without permission" },
+      },
+      es: {
+        nav: { back: "← volver al portafolio artístico", proj: "dibujos." },
+        hero: {
+          title: "todo en lápiz.",
+          subtitle: "Diecisiete dibujos a grafito. Algunos llevaron una hora, otros dos noches.",
+          meta: "grafito · papel · 2024 a 2026",
+        },
+        intro: {
+          h: "a lo que siempre vuelvo",
+          body: "El lápiz es la herramienta que más me genera confianza, la que siempre vuelve a mí. Construir valores lentamente, arreglar lo que está mal manchándolo, mirar cómo una sola hoja se traga varias horas. Los dibujos reunidos acá son anatomía, retratos, objetos que no podía dejar de mirar, y algunos que empezaron como ejercicios y se convirtieron en algo que quise guardar.",
+          rule: "Algo que trato de tener presente, y a veces logro hacer: sin gomas, sin errores. Cuando una línea va a un lugar que yo no había planeado, el dibujo la puede seguir.",
+        },
+        sectionTitle: "la galería",
+        footer: { back: "← volver al resto del trabajo", credit: "© Constanza Kostyushko · por favor no descargar ni reusar sin permiso" },
+      },
+    };
+
+    function useInView(threshold = 0.05) {
+      const ref = useRef(null);
+      const [inView, setInView] = useState(false);
+      useEffect(() => {
+        const el = ref.current; if (!el) return;
+        const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } }, { threshold });
+        obs.observe(el);
+        return () => obs.disconnect();
+      }, [threshold]);
+      return [ref, inView];
+    }
+    function Reveal({ children, delay = 0, from = "bottom" }) {
+      const [ref, inView] = useInView();
+      const tf = { bottom: "translateY(24px)", left: "translateX(-24px)", right: "translateX(24px)", scale: "scale(0.95)", tilt: "rotate(-3deg) translateY(20px)" };
+      return (
+        <div ref={ref} style={{
+          opacity: inView ? 1 : 0,
+          transform: inView ? "none" : tf[from],
+          transition: `opacity 0.9s cubic-bezier(.22,1,.36,1) ${delay}s, transform 0.9s cubic-bezier(.22,1,.36,1) ${delay}s`,
+        }}>{children}</div>
+      );
+    }
+
+    /* ─── NAV ─── */
+    function Nav({ lang, setLang, t }) {
+      const [scrolled, setScrolled] = useState(false);
+      useEffect(() => {
+        const h = () => setScrolled(window.scrollY > 40);
+        window.addEventListener("scroll", h);
+        return () => window.removeEventListener("scroll", h);
+      }, []);
+      return (
+        <nav style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          padding: "0 1.5rem", height: 56,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: scrolled ? "rgba(245,234,208,0.94)" : "transparent",
+          borderBottom: scrolled ? `1px solid ${C.line}` : "1px solid transparent",
+          backdropFilter: scrolled ? "blur(10px)" : "none",
+          transition: "background 0.3s, border-color 0.3s",
+        }}>
+          <a href="art-portfolio.html#graphite" className="hand" style={{
+            color: C.ink, fontSize: 17, textDecoration: "none", letterSpacing: "0.02em",
+            transition: "color 0.2s, transform 0.2s", display: "inline-block",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.graphite; e.currentTarget.style.transform = "translateX(-2px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = C.ink; e.currentTarget.style.transform = "none"; }}
+          >{t.nav.back}</a>
+
+          <span className="display" style={{
+            fontSize: 22, fontStyle: "italic", color: C.ink, letterSpacing: "0.04em",
+          }}>{t.nav.proj}<span style={{ color: C.graphite }}>.</span></span>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {["en","es"].map(code => {
+              const active = lang === code;
+              return (
+                <button key={code} onClick={() => setLang(code)} style={{
+                  background: "none", border: "none", cursor: active ? "default" : "pointer",
+                  fontSize: 12, fontWeight: active ? 700 : 400,
+                  color: active ? C.graphite : C.mute, letterSpacing: "0.08em",
+                  padding: "2px 6px",
+                  borderBottom: active ? `1px solid ${C.graphite}` : "1px solid transparent",
+                  fontFamily: "'Cormorant Garamond', serif",
+                  transition: "color 0.2s, border-color 0.2s",
+                }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.color = C.ink; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.color = C.mute; }}
+                >{code.toUpperCase()}</button>
+              );
+            })}
+          </div>
+        </nav>
+      );
+    }
+
+    /* ─── HERO ─── */
+    function Hero({ t }) {
+      return (
+        <header style={{
+          position: "relative", padding: "140px 1.5rem 3rem",
+          textAlign: "center",
+        }}>
+          {/* graphite smudges spanning the full viewport width */}
+          <div aria-hidden="true" style={{
+            position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+            pointerEvents: "none", overflow: "hidden",
+          }}>
+            <svg viewBox="0 0 1600 320" preserveAspectRatio="none"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.18 }}>
+              <ellipse cx="240"  cy="240" rx="360" ry="28" fill={C.graphite} transform="rotate(-8 240 240)"/>
+              <ellipse cx="1360" cy="80"  rx="320" ry="22" fill={C.graphite} transform="rotate(6 1360 80)"/>
+              <ellipse cx="800"  cy="260" rx="440" ry="18" fill={C.graphite} transform="rotate(-3 800 260)"/>
+            </svg>
+          </div>
+
+          <div style={{ position: "relative", maxWidth: 1100, margin: "0 auto" }}>
+            <Reveal>
+              <h1 className="display" style={{
+                fontSize: "clamp(2.8rem, 7.5vw, 5.6rem)",
+                fontWeight: 700, fontStyle: "italic", lineHeight: 0.95,
+                color: C.ink, marginBottom: 22,
+                textAlign: "center",
+              }}>{t.hero.title}</h1>
+              <p className="serif" style={{
+                fontSize: "1.2rem", color: C.inkSoft, lineHeight: 1.6,
+                fontStyle: "italic", maxWidth: 680, margin: "0 auto",
+                textAlign: "center",
+              }}>{t.hero.subtitle}</p>
+              <p style={{
+                marginTop: "1.5rem", fontSize: 12, color: C.mute, letterSpacing: "0.1em",
+                textAlign: "center",
+              }}>{t.hero.meta}</p>
+            </Reveal>
+          </div>
+        </header>
+      );
+    }
+
+    /* ─── INTRO ─── */
+    function Intro({ t }) {
+      return (
+        <section style={{ padding: "2rem 1.5rem 3rem" }}>
+          <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center", borderTop: "1px dashed " + C.line, borderBottom: "1px dashed " + C.line, padding: "2.5rem 0" }}>
+            <Reveal>
+              <p className="hand" style={{ color: C.graphite, fontSize: "1.4rem", marginBottom: 14 }}>
+                ✶ {t.intro.h}
+              </p>
+              <p className="serif" style={{
+                fontSize: "1.2rem", lineHeight: 1.75, color: C.ink,
+                fontStyle: "italic",
+              }}>{t.intro.body}</p>
+              <p className="serif" style={{
+                fontSize: "1.05rem", lineHeight: 1.7, color: C.inkSoft,
+                marginTop: 18, paddingTop: 14, borderTop: "1px dashed " + C.line,
+                letterSpacing: "0.02em",
+              }}>{t.intro.rule}</p>
+            </Reveal>
+          </div>
+        </section>
+      );
+    }
+
+    /* ─── DIVIDER (hand-drawn pencil swoosh) ─── */
+    function Divider() {
+      return (
+        <div style={{ maxWidth: 800, margin: "1rem auto 2rem", textAlign: "center", padding: "0 1.5rem" }}>
+          <svg width="280" height="26" style={{ display: "block", margin: "0 auto" }}>
+            <path d="M 4 16 Q 60 4, 140 16 T 276 14"
+              fill="none" stroke={C.graphite} strokeWidth="1.8" strokeLinecap="round" opacity="0.7"
+              style={{ strokeDasharray: 320, animation: "drawLine 2s ease-out forwards" }}/>
+            <circle cx="276" cy="14" r="2" fill={C.graphite} opacity="0.7"/>
+          </svg>
+        </div>
+      );
+    }
+
+    /* ─── DRAWING CARD ─── */
+    function Drawing({ piece, lang, idx }) {
+      const [hover, setHover] = useState(false);
+      const [errored, setErrored] = useState(false);
+      const label = piece[lang];
+      const meta = piece["meta_" + lang];
+      const isFeatured = piece.featured;
+
+      return (
+        <figure
+          className="protected"
+          onContextMenu={e => e.preventDefault()}
+          onDragStart={e => e.preventDefault()}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          style={{
+            position: "relative", margin: 0,
+            background: C.paperSoft,
+            padding: 16,
+            transform: hover ? `rotate(${piece.rot * 0.3}deg) translateY(-6px)` : `rotate(${piece.rot}deg)`,
+            transition: "transform 0.55s cubic-bezier(.22,1,.36,1), box-shadow 0.4s",
+            boxShadow: hover
+              ? "0 22px 42px rgba(74,69,64,0.35), 0 4px 12px rgba(0,0,0,0.15)"
+              : "0 12px 24px rgba(74,69,64,0.28), 0 2px 6px rgba(0,0,0,0.1)",
+          }}>
+          <div style={{
+            position: "relative",
+            aspectRatio: piece.ratio,
+            background: errored
+              ? "linear-gradient(135deg, " + C.paperDeep + " 0%, " + C.line + " 100%)"
+              : "url(\"" + piece.src + "\") center/cover " + C.paperDeep,
+            overflow: "hidden",
+            border: errored ? "2px dashed " + C.graphite : "1px solid " + C.line,
+          }}>
+            {/* hidden img used purely to detect missing files */}
+            <img src={piece.src} alt=""
+              onError={() => setErrored(true)}
+              style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}/>
+
+            {/* invisible overlay that swallows right-click */}
+            <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "transparent" }}
+              onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}/>
+
+            {errored && (
+              <div style={{
+                position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center", gap: 8, padding: 12, textAlign: "center",
+              }}>
+                <span className="hand" style={{ color: C.graphite, fontSize: "1.2rem" }}>missing</span>
+                <code style={{ background: C.graphite, color: C.paper, padding: "2px 8px", fontSize: 10 }}>{piece.src}</code>
+              </div>
+            )}
+          </div>
+
+          {/* caption beneath, sketchbook-style */}
+          <div style={{ marginTop: 14, textAlign: "center" }}>
+            <p className="hand" style={{
+              color: C.ink, fontSize: isFeatured ? "1.9rem" : "1.55rem",
+              fontWeight: 600, lineHeight: 1.05,
+            }}>{label}</p>
+            {meta && (
+              <p style={{
+                fontSize: 14, color: C.inkSoft, letterSpacing: "0.04em",
+                fontStyle: "italic", marginTop: 6,
+              }}>{meta}</p>
+            )}
+            <p style={{
+              fontSize: 12, color: C.mute, marginTop: 8, letterSpacing: "0.2em",
+            }}>{String(idx + 1).padStart(2, "0")} / {String(PIECES.length).padStart(2, "0")}</p>
+          </div>
+        </figure>
+      );
+    }
+
+    /* ─── GALLERY ─── */
+    function Gallery({ lang, t }) {
+      return (
+        <section style={{ padding: "1rem 1.2rem 5rem" }}>
+          <div style={{ maxWidth: 1500, margin: "0 auto" }}>
+            <Reveal>
+              <p className="hand" style={{ color: C.graphite, fontSize: "1.7rem", textAlign: "center", marginBottom: "2rem", transform: "rotate(-1deg)", display: "block" }}>
+                ✶ {t.sectionTitle}
+              </p>
+            </Reveal>
+
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(12, 1fr)",
+              gap: 28,
+              alignItems: "start",
+            }}>
+              {(() => {
+                /* Walk PIECES, group into rows that sum to 12. If a row is short, offset to center it. */
+                const cells = [];
+                let rowAcc = [];
+                let rowSpan = 0;
+                PIECES.forEach((p, i) => {
+                  rowAcc.push({ p, i });
+                  rowSpan += p.span;
+                  const last = i === PIECES.length - 1;
+                  if (rowSpan >= 12 || last) {
+                    const slack = 12 - rowSpan;
+                    const offset = slack > 0 ? Math.floor(slack / 2) : 0;
+                    let runCol = 1 + offset;
+                    rowAcc.forEach(({ p: ph, i: idx }) => {
+                      cells.push(
+                        <div key={ph.src} style={{ gridColumn: runCol + " / span " + ph.span }}>
+                          <Reveal delay={(idx % 4) * 0.04} from={idx % 2 ? "tilt" : "left"}>
+                            <Drawing piece={ph} lang={lang} idx={idx}/>
+                          </Reveal>
+                        </div>
+                      );
+                      runCol += ph.span;
+                    });
+                    rowAcc = []; rowSpan = 0;
+                  }
+                });
+                return cells;
+              })()}
+            </div>
+
+          </div>
+        </section>
+      );
+    }
+
+    /* ─── FOOTER ─── */
+    function Footer({ t }) {
+      return (
+        <footer style={{
+          padding: "4rem 1.5rem 3rem", textAlign: "center",
+          borderTop: "1px dashed " + C.line,
+        }}>
+          <Reveal>
+            <svg width="200" height="30" style={{ display: "block", margin: "0 auto 1.5rem" }}>
+              <path d="M 8 18 Q 60 4, 120 18 T 192 16" fill="none" stroke={C.graphite} strokeWidth="1.6" strokeLinecap="round" opacity="0.7"
+                style={{ strokeDasharray: 250, animation: "scribbleIn 2s ease-out forwards" }}/>
+            </svg>
+            <a href="art-portfolio.html#graphite" className="hand" style={{
+              display: "inline-block", fontSize: "1.5rem", color: C.graphite,
+              textDecoration: "none", padding: "12px 24px",
+              borderBottom: "2px solid " + C.graphite,
+              transition: "color 0.2s, transform 0.2s, border-color 0.2s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = C.ink; e.currentTarget.style.transform = "translateX(-3px)"; e.currentTarget.style.borderColor = C.ink; }}
+              onMouseLeave={e => { e.currentTarget.style.color = C.graphite; e.currentTarget.style.transform = "none"; e.currentTarget.style.borderColor = C.graphite; }}
+            >{t.footer.back}</a>
+            <p className="serif" style={{
+              marginTop: "2rem", fontSize: 12, color: C.mute, fontStyle: "italic",
+              letterSpacing: "0.04em", maxWidth: 540, marginLeft: "auto", marginRight: "auto",
+            }}>{t.footer.credit}</p>
+          </Reveal>
+        </footer>
+      );
+    }
+
+    /* ─── APP ─── */
+    function App() {
+      const [lang, setLang] = useState(() => localStorage.getItem('art-portfolio-lang') || 'en');
+      useEffect(() => { localStorage.setItem('art-portfolio-lang', lang); }, [lang]);
+
+      useEffect(() => {
+        const block = (e) => {
+          if (e.target && (e.target.tagName === 'IMG' || (e.target.closest && e.target.closest('.protected')))) {
+            e.preventDefault();
+          }
+        };
+        document.addEventListener('contextmenu', block);
+        document.addEventListener('dragstart', block);
+        return () => {
+          document.removeEventListener('contextmenu', block);
+          document.removeEventListener('dragstart', block);
+        };
+      }, []);
+
+      const t = T[lang];
+      return (
+        <>
+          <Nav lang={lang} setLang={setLang} t={t}/>
+          <Hero t={t}/>
+          <Intro t={t}/>
+          <Divider />
+          <Gallery lang={lang} t={t}/>
+          <Footer t={t}/>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
