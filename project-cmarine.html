@@ -92,6 +92,17 @@
     .proj-link-arrow { font-size: 12px; color: var(--card-accent, var(--accent)); margin-top: 4px; }
     .page-footer { text-align: center; padding: 2rem 0 0.5rem; }
     .page-footer p { font-size: 11px; color: var(--dim); letter-spacing: 0.05em; }
+    .mobile-visit { display: none; }
+    @media (max-width: 700px) {
+      body { overflow-x: hidden; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 96px 1.25rem 2rem; gap: 1.5rem; }
+      .content { padding: 0 1.25rem 4rem; }
+      .other-projects { margin-left: 0; margin-right: 0; box-shadow: 0 0 0 1px rgba(58,143,199,0.28), 0 0 32px rgba(58,143,199,0.13); }
+      .project-links-grid { grid-template-columns: 1fr; }
+      .mobile-visit { display: inline-flex !important; }
+      .content-visit { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -150,6 +161,7 @@
         <span class="tag" data-en="Responsive Design" data-es="Diseño Responsive">Responsive Design</span>
         <span class="tag" data-en="Client Project" data-es="Proyecto para cliente">Client Project</span>
       </div>
+      <a href="https://cmarinesurveyors.com/" target="_blank" rel="noreferrer" class="visit-link mobile-visit" data-en="View Project →" data-es="Ver proyecto →">View Project →</a>
     </div>
     <div class="hero-img fade-up delay-1">
       <img src="project-cmarine.jpg" alt="CMarine Surveyors project" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
@@ -163,7 +175,7 @@
       <div class="section-label" data-en="Overview" data-es="Descripción general">Overview</div>
       <p class="body-text" data-en="&quot;CMarine Surveyors&quot; is a client project where I redesigned an existing website that wasn't bringing in any leads. The goal was to turn it into something clearer, more professional, and actually useful for attracting new clients." data-es="&quot;CMarine Surveyors&quot; es un proyecto para un cliente en el que rediseñé un sitio web existente que no generaba consultas. El objetivo era convertirlo en algo más claro, más profesional y realmente útil para atraer nuevos clientes.">"CMarine Surveyors" is a client project where I redesigned an existing website that wasn't bringing in any leads. The goal was to turn it into something clearer, more professional, and actually useful for attracting new clients.</p>
       <p class="body-text" data-en="The main challenge wasn't just design. The client didn't have a very defined structure or focus, so part of the work was figuring out how to present the services in a way that made sense and matched how people search for them." data-es="El principal desafío no era solo el diseño. El cliente no tenía una estructura o enfoque muy definido, así que parte del trabajo fue determinar cómo presentar los servicios de una manera coherente y alineada con cómo las personas los buscan.">The main challenge wasn't just design. The client didn't have a very defined structure or focus, so part of the work was figuring out how to present the services in a way that made sense and matched how people search for them.</p>
-      <a href="https://cmarinesurveyors.com/" target="_blank" rel="noreferrer" class="visit-link" data-en="View Project →" data-es="Ver proyecto →">View Project →</a>
+      <a href="https://cmarinesurveyors.com/" target="_blank" rel="noreferrer" class="visit-link content-visit" data-en="View Project →" data-es="Ver proyecto →">View Project →</a>
     </div>
 
     <div class="divider"></div>
