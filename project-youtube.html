@@ -107,6 +107,18 @@
     .proj-link-arrow { font-size: 12px; color: var(--card-accent, var(--accent)); margin-top: 4px; }
     .page-footer { text-align: center; padding: 2rem 0 0.5rem; }
     .page-footer p { font-size: 11px; color: var(--dim); letter-spacing: 0.05em; }
+    .mobile-visit { display: none; }
+    @media (max-width: 700px) {
+      body { overflow-x: hidden; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 96px 1.25rem 2rem; gap: 1.5rem; }
+      .content { padding: 0 1.25rem 4rem; }
+      .other-projects { margin-left: 0; margin-right: 0; box-shadow: 0 0 0 1px rgba(217,79,79,0.28), 0 0 32px rgba(217,79,79,0.13); }
+      .project-links-grid { grid-template-columns: 1fr; }
+      .mobile-visit { display: inline-flex !important; }
+      .content-visit { display: none; }
+      .link-row { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
@@ -166,6 +178,10 @@
         <span class="tag" data-en="Content Creation" data-es="Creación de contenido">Content Creation</span>
         <span class="tag" data-en="Direction" data-es="Dirección">Direction</span>
       </div>
+      <div class="mobile-visit" style="display:none;flex-direction:column;gap:10px;margin-top:1.25rem;">
+        <a href="https://www.youtube.com/@cocinarconlana" target="_blank" rel="noreferrer" class="visit-link" style="margin-top:0;" data-en="View Cooking Channel →" data-es="Ver canal de cocina →">View Cooking Channel →</a>
+        <a href="https://www.youtube.com/@ConstanzaKr" target="_blank" rel="noreferrer" class="visit-link-secondary" data-en="View Short Films →" data-es="Ver cortometrajes →">View Short Films →</a>
+      </div>
     </div>
     <div class="hero-img fade-up delay-1">
       <img src="project-youtube.jpg" alt="YouTube project" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
@@ -199,7 +215,7 @@
       <p class="body-text" data-en="I've been creating and editing video content for YouTube, managing every step from concept to publication. My work includes producing cooking videos for a family channel as well as short films I've directed and edited myself." data-es="He estado creando y editando contenido de video para YouTube, gestionando cada paso desde el concepto hasta la publicación. Mi trabajo incluye la producción de videos de cocina para un canal familiar, así como cortometrajes que yo misma he dirigido y editado.">I've been creating and editing video content for YouTube, managing every step from concept to publication. My work includes producing cooking videos for a family channel as well as short films I've directed and edited myself.</p>
       <p class="body-text" data-en="In addition, we created an alternate version of the cooking channel in English, where I recorded voiceovers and directed my mother to perform in Spanish. This added an extra layer of coordination and localization, allowing the same content to reach a wider audience." data-es="Además, creamos una versión alternativa del canal de cocina en inglés, donde grabé narraciones en off y dirigí a mi madre para que actuara en español. Esto añadió una capa adicional de coordinación y localización, permitiendo que el mismo contenido llegara a una audiencia más amplia.">In addition, we created an alternate version of the cooking channel in English, where I recorded voiceovers and directed my mother to perform in Spanish. This added an extra layer of coordination and localization, allowing the same content to reach a wider audience.</p>
       <p class="body-text" data-en="Across these projects, I've gained hands-on experience in filming, multi-camera setups, lighting, directing, editing, post-production, and publishing content that engages audiences. It also gave me space to experiment with storytelling, technical workflows, and creative decision-making in real-world projects." data-es="A lo largo de estos proyectos, he adquirido experiencia práctica en filmación, configuraciones multicámara, iluminación, dirección, edición, posproducción y publicación de contenido que conecta con el público. También me dio espacio para experimentar con la narrativa, los flujos de trabajo técnicos y la toma de decisiones creativas en proyectos reales.">Across these projects, I've gained hands-on experience in filming, multi-camera setups, lighting, directing, editing, post-production, and publishing content that engages audiences. It also gave me space to experiment with storytelling, technical workflows, and creative decision-making in real-world projects.</p>
-      <div class="link-row">
+      <div class="link-row content-visit">
         <a href="https://www.youtube.com/@cocinarconlana" target="_blank" rel="noreferrer" class="visit-link" data-en="View Cooking Channel →" data-es="Ver canal de cocina →">View Cooking Channel →</a>
         <a href="https://www.youtube.com/@ConstanzaKr" target="_blank" rel="noreferrer" class="visit-link-secondary" data-en="View Short Films →" data-es="Ver cortometrajes →">View Short Films →</a>
       </div>
