@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dear Keira: Constanza Kostyushko</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --accent: #9b6dbd; --accent-light: #b48fd4; --accent-dark: #5e3680;
+      --bg: #161616; --surface: #1c1c1c; --card: #202020; --border: #2a2a2a;
+      --text: #f0f0f0; --muted: #999; --dim: #555;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+    ::selection { background: #9b6dbd44; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: #3d1f6b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    .fade-up { opacity: 0; transform: translateY(28px); transition: opacity 0.75s cubic-bezier(.22,1,.36,1), transform 0.75s cubic-bezier(.22,1,.36,1); }
+    .fade-up.visible { opacity: 1; transform: none; }
+    .delay-1 { transition-delay: 0.1s; }
+    .delay-2 { transition-delay: 0.2s; }
+    .delay-3 { transition-delay: 0.35s; }
+
+    #progress-bar { position: fixed; top: 78px; left: 0; height: 2px; width: 0; background: var(--accent); z-index: 200; transition: width 0.08s linear; }
+
+    /* Nav */
+    nav { position: fixed; top: 0; left: 0; right: 0; display: flex; flex-direction: column; z-index: 100; background: #161616dd; border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); }
+    .nav-main { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 2rem; }
+    .nav-sub { display: flex; justify-content: flex-end; align-items: center; height: 22px; padding: 0 2rem; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; letter-spacing: 0.1em; color: var(--text); text-decoration: none; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; letter-spacing: 0.05em; }
+    .nav-link:hover { color: var(--accent); }
+    .nav-drop { position: relative; }
+    .nav-drop-menu { position: absolute; top: 100%; right: 0; padding-top: 10px; display: none; z-index: 200; }
+    .nav-drop:hover .nav-drop-menu { display: block; }
+    .nav-drop-inner { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 6px; min-width: 260px; box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3); }
+    .nav-drop-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; color: var(--muted); font-size: 13px; text-decoration: none; transition: background 0.15s, color 0.15s; }
+    .nav-drop-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; opacity: 0.45; transition: opacity 0.15s; }
+    .nav-back { font-size: 11px; color: var(--dim); text-decoration: none; transition: color 0.2s; letter-spacing: 0.04em; }
+    .nav-back:hover { color: var(--muted); }
+    .lang-btn { background: none; border: none; cursor: pointer; font-size: 12px; font-family: 'Inter', sans-serif; letter-spacing: 0.08em; padding: 2px 4px; color: var(--dim); border-bottom: 1px solid transparent; transition: color 0.2s, border-color 0.2s; }
+    .lang-sep { color: var(--dim); font-size: 11px; }
+
+    /* Hero */
+    .hero { padding: 114px 2rem 3rem; max-width: 860px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    .hero-text h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 700; line-height: 1.25; }
+    .hero-text h1 .h1-accent { color: var(--accent); }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.2rem; }
+    .tag { font-size: 12px; padding: 4px 10px; border-radius: 6px; background: rgba(94,54,128,0.2); color: var(--accent-light); border: 1px solid rgba(94,54,128,0.35); }
+    .hero-img { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10; background: linear-gradient(135deg, #3b2f6e, #6b3a7d, #c4728a); position: relative; transition: transform 0.25s ease; }
+    .hero-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hero-img .placeholder { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }
+
+    /* Content */
+    .content { max-width: 860px; margin: 0 auto; padding: 0 2rem 6rem; }
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 3rem 0; }
+    .section-label { font-size: 11px; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; }
+    .body-text { font-size: 15px; color: var(--muted); line-height: 1.85; }
+    .body-text + .body-text { margin-top: 1rem; }
+
+    ul.notion-list { list-style: none; padding: 0; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 10px; }
+    ul.notion-list li { font-size: 15px; color: var(--muted); line-height: 1.7; padding-left: 1.4rem; position: relative; transition: color 0.2s, transform 0.2s; cursor: default; }
+    ul.notion-list li::before { content: "›"; position: absolute; left: 0; color: var(--accent-dark); font-weight: 600; transition: color 0.2s; }
+    ul.notion-list li:hover { color: var(--text) !important; transform: translateX(0.5rem); }
+    ul.notion-list li:hover::before { color: var(--accent); }
+
+    .key-elements { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 0.5rem; }
+    .key-tag { font-size: 13px; padding: 6px 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); color: var(--text); transition: border-color 0.2s, color 0.2s, transform 0.2s; cursor: default; }
+    .key-tag:hover { border-color: var(--accent-dark); color: var(--accent-light); transform: translateY(-2px); }
+
+    .visit-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 1.25rem; padding: 10px 22px; background: var(--accent-dark); color: var(--text); border-radius: 8px; font-size: 14px; font-weight: 500; text-decoration: none; border: 1px solid rgba(155,109,189,0.3); transition: background 0.25s, transform 0.2s; }
+    .visit-link:hover { background: var(--accent); transform: translateY(-2px); }
+
+    .extra-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem 2.5rem; position: relative; overflow: hidden; }
+    .extra-section::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-dark), var(--accent), var(--accent-dark)); }
+    .extra-label { font-size: 11px; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.6rem; }
+    .extra-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+    .extra-text { font-size: 14px; color: var(--muted); line-height: 1.8; }
+
+    .wide-divider { position: relative; left: 50%; transform: translateX(-50%); width: 90vw; margin: 3.5rem 0 2.5rem; height: 1px; background: linear-gradient(90deg, transparent, var(--border) 15%, var(--border) 85%, transparent); }
+    .other-projects { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 2rem 2.5rem; margin-left: -150px; margin-right: -150px; }
+    .other-label { font-size: 11px; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .other-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text); }
+    .project-links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .proj-link-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.5rem; text-decoration: none; transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s; display: flex; flex-direction: column; gap: 8px; }
+    .proj-link-card:hover { border-color: var(--card-accent-dark, var(--accent-dark)); transform: translateY(-3px); box-shadow: 0 10px 30px var(--card-glow, rgba(0,0,0,0.15)); }
+    .proj-link-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .proj-link-tags { font-size: 12px; color: var(--dim); }
+    .proj-link-arrow { font-size: 12px; color: var(--card-accent, var(--accent)); margin-top: 4px; }
+    .page-footer { text-align: center; padding: 2rem 0 0.5rem; }
+    .page-footer p { font-size: 11px; color: var(--dim); letter-spacing: 0.05em; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-main">
+      <a href="index.html" class="nav-logo">CK</a>
+      <div class="nav-links">
+        <a href="index.html#about" class="nav-link" data-en="About" data-es="Sobre mí">About</a>
+        <a href="index.html#skills" class="nav-link" data-en="Skills" data-es="Habilidades">Skills</a>
+        <div class="nav-drop">
+          <a href="index.html#projects" class="nav-link" data-en="Projects" data-es="Proyectos">Projects</a>
+          <div class="nav-drop-menu">
+            <div class="nav-drop-inner">
+              <a href="project-framer.html" class="nav-drop-item" style="color:#9b6dbd;"
+                 onmouseover="this.style.background='#9b6dbd12';this.querySelector('.nav-drop-dot').style.opacity='1'"
+                 onmouseout="this.style.background='';this.querySelector('.nav-drop-dot').style.opacity='1'">
+                <span class="nav-drop-dot" style="background:#9b6dbd;opacity:1;"></span>
+                <span data-en="Dear Keira: A Digital Birthday Card" data-es="Dear Keira: Una Tarjeta de Cumpleaños Digital">Dear Keira: A Digital Birthday Card</span>
+              </a>
+              <a href="project-cmarine.html" class="nav-drop-item"
+                 onmouseover="this.style.color='#3a8fc7';this.style.background='#3a8fc712';this.querySelector('.nav-drop-dot').style.opacity='1'"
+                 onmouseout="this.style.color='';this.style.background='';this.querySelector('.nav-drop-dot').style.opacity='0.45'">
+                <span class="nav-drop-dot" style="background:#3a8fc7;"></span>
+                <span data-en="CMarine Surveyors Website" data-es="Sitio Web de CMarine Surveyors">CMarine Surveyors Website</span>
+              </a>
+              <a href="project-youtube.html" class="nav-drop-item"
+                 onmouseover="this.style.color='#d94f4f';this.style.background='#d94f4f12';this.querySelector('.nav-drop-dot').style.opacity='1'"
+                 onmouseout="this.style.color='';this.style.background='';this.querySelector('.nav-drop-dot').style.opacity='0.45'">
+                <span class="nav-drop-dot" style="background:#d94f4f;"></span>
+                <span data-en="Video Production &amp; Editing" data-es="Producción y Edición de Video">Video Production &amp; Editing</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <a href="index.html#contact" class="nav-link" data-en="Contact" data-es="Contacto">Contact</a>
+        <div style="display:flex;align-items:center;gap:4px;border-left:1px solid var(--border);padding-left:16px;">
+          <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+          <span class="lang-sep">|</span>
+          <button class="lang-btn" data-lang="es" onclick="setLang('es')">ES</button>
+        </div>
+      </div>
+    </div>
+    <div class="nav-sub">
+      <a href="index.html" class="nav-back" data-en="← Back to portfolio" data-es="← Volver al portafolio">← Back to portfolio</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-text fade-up">
+      <div class="section-label" data-en="Project" data-es="Proyecto">Project</div>
+      <h1>Dear Keira:<br/><span class="h1-accent" data-en="A Digital Birthday Card" data-es="Una Tarjeta de Cumpleaños Digital">A Digital Birthday Card</span></h1>
+      <div class="tag-row">
+        <span class="tag">Framer</span>
+        <span class="tag">Calligraphr</span>
+        <span class="tag">Gimp</span>
+        <span class="tag">UI / UX</span>
+        <span class="tag" data-en="Personal Project" data-es="Proyecto Personal">Personal Project</span>
+      </div>
+    </div>
+    <div class="hero-img fade-up delay-1">
+      <img src="project-framer.jpg" alt="Dear Keira project" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <div class="placeholder">[ project screenshot ]</div>
+    </div>
+  </section>
+
+  <div class="content">
+
+    <div class="fade-up delay-2">
+      <div class="section-label" data-en="Overview" data-es="Descripción general">Overview</div>
+      <p class="body-text" data-en="In late 2025, I had a dear friend's birthday coming up and I wanted to do something more meaningful than a typical birthday card. What started as a simple idea quickly turned into a fully responsive website." data-es="A fines de 2025, se acercaba el cumpleaños de una amiga muy querida y quería hacer algo más significativo que una tarjeta típica. Lo que empezó como una idea simple se convirtió rápidamente en un sitio web completamente responsive.">In late 2025, I had a dear friend's birthday coming up and I wanted to do something more meaningful than a typical birthday card. What started as a simple idea quickly turned into a fully responsive website.</p>
+      <p class="body-text" data-en="&quot;Dear Keira&quot; is a personal project where I explored how a message can become an experience. Instead of just presenting content, I focused on creating a certain feeling through layout, typography, and pacing." data-es="&quot;Dear Keira&quot; es un proyecto personal en el que exploré cómo un mensaje puede convertirse en una experiencia. En lugar de simplemente presentar contenido, me enfoqué en crear una sensación específica a través del diseño, la tipografía y el ritmo.">"Dear Keira" is a personal project where I explored how a message can become an experience. Instead of just presenting content, I focused on creating a certain feeling through layout, typography, and pacing.</p>
+      <a href="https://dearkeira.framer.website/" target="_blank" rel="noreferrer" class="visit-link" data-en="View Project →" data-es="Ver proyecto →">View Project →</a>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="fade-up delay-3">
+      <div class="section-label" data-en="Process" data-es="Proceso">Process</div>
+      <ul class="notion-list">
+        <li data-en="Brainstormed and started with a general concept: an interactive birthday message." data-es="Comencé con una lluvia de ideas y un concepto general: un mensaje de cumpleaños interactivo.">Brainstormed and started with a general concept: an interactive birthday message.</li>
+        <li data-en="Decided on the tools I'll use to make it happen: Framer, Gimp, and Calligraphr." data-es="Elegí las herramientas a utilizar: Framer, Gimp y Calligraphr.">Decided on the tools I'll use to make it happen: Framer, Gimp, and Calligraphr.</li>
+        <li data-en="Designed and built the site in Framer." data-es="Diseñé y construí el sitio en Framer.">Designed and built the site in Framer.</li>
+        <li data-en="Created a custom handwritten font using Calligraphr." data-es="Creé una fuente manuscrita personalizada con Calligraphr.">Created a custom handwritten font using Calligraphr.</li>
+        <li data-en="Designed a custom logo and hand-drawn visual elements to add to the personal feel, utilizing tools like Gimp." data-es="Diseñé un logo personalizado y elementos visuales dibujados a mano para darle un toque más íntimo, usando herramientas como Gimp.">Designed a custom logo and hand-drawn visual elements to add to the personal feel, utilizing tools like Gimp.</li>
+        <li data-en="Built fully functional mobile and tablet versions, adapting layout, buttons, and interactions for each format." data-es="Desarrollé versiones completamente funcionales para móvil y tablet, adaptando el diseño, los botones y las interacciones a cada formato.">Built fully functional mobile and tablet versions, adapting layout, buttons, and interactions for each format.</li>
+        <li data-en="Refined spacing, structure, and interactions to improve overall flow and consistency." data-es="Refiné el espaciado, la estructura y las interacciones para mejorar el flujo general y la consistencia.">Refined spacing, structure, and interactions to improve overall flow and consistency.</li>
+      </ul>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="fade-up">
+      <div class="section-label" data-en="Key Elements" data-es="Elementos clave">Key Elements</div>
+      <div class="key-elements">
+        <span class="key-tag" data-en="Fully responsive design" data-es="Diseño totalmente responsive">Fully responsive design</span>
+        <span class="key-tag" data-en="Custom typography" data-es="Tipografía personalizada">Custom typography</span>
+        <span class="key-tag" data-en="Personal visual identity" data-es="Identidad visual personal">Personal visual identity</span>
+        <span class="key-tag" data-en="Focus on storytelling and user experience" data-es="Enfoque en narrativa y experiencia de usuario">Focus on storytelling and user experience</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="fade-up">
+      <div class="section-label" data-en="Reflection" data-es="Reflexión">Reflection</div>
+      <p class="body-text" data-en="This project pushed me to think beyond static design and consider how people move through something. It made me more aware of how small decisions (like spacing or timing) can change the overall experience." data-es="Este proyecto me llevó a pensar más allá del diseño estático y a considerar cómo las personas recorren algo. Me hizo más consciente de cómo las pequeñas decisiones, como el espaciado o el ritmo, pueden transformar la experiencia general.">This project pushed me to think beyond static design and consider how people move through something. It made me more aware of how small decisions (like spacing or timing) can change the overall experience.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="extra-section fade-up">
+      <div class="extra-title" data-en="What made this one special" data-es="Lo que hizo especial a este proyecto">What made this one special</div>
+      <p class="extra-text" data-en="Most portfolio projects start from a brief or a client need. This one started from wanting to make someone feel something. That shift, from 'build a site' to 'create a moment,' changed how I thought about every decision. The custom font alone took several rounds of iteration to feel right, and that attention to detail carried through everything else. It's the project I'm most personally proud of." data-es="La mayoría de los proyectos de portafolio parten de un brief o una necesidad del cliente. Este nació del deseo de hacer sentir algo a alguien. Ese cambio, de 'construir un sitio' a 'crear un momento', transformó cómo pensé cada decisión. Solo la fuente personalizada requirió varias rondas de iteración hasta sentirse correcta, y esa atención al detalle se trasladó a todo lo demás. Es el proyecto del que más me enorgullezco.">Most portfolio projects start from a brief or a client need. This one started from wanting to make someone feel something. That shift, from 'build a site' to 'create a moment,' changed how I thought about every decision. The custom font alone took several rounds of iteration to feel right, and that attention to detail carried through everything else. It's the project I'm most personally proud of.</p>
+    </div>
+
+    <div class="wide-divider"></div>
+    <div class="other-projects fade-up">
+      <div class="other-label" data-en="Explore more" data-es="Explorar más">Explore more</div>
+      <div class="other-title" data-en="See my other projects" data-es="Ver mis otros proyectos">See my other projects</div>
+      <div class="project-links-grid">
+        <a href="project-cmarine.html" class="proj-link-card" style="--card-accent:#3a8fc7;--card-accent-dark:#1e5a8a;--card-glow:rgba(58,143,199,0.18)">
+          <div class="proj-link-name" data-en="CMarine Surveyors Website" data-es="Sitio Web de CMarine Surveyors">CMarine Surveyors Website</div>
+          <div class="proj-link-tags" data-en="WordPress · SEO · Client Project" data-es="WordPress · SEO · Proyecto para cliente">WordPress · SEO · Client Project</div>
+          <div class="proj-link-arrow" data-en="View →" data-es="Ver →">View →</div>
+        </a>
+        <a href="project-youtube.html" class="proj-link-card" style="--card-accent:#d94f4f;--card-accent-dark:#962b2b;--card-glow:rgba(217,79,79,0.18)">
+          <div class="proj-link-name" data-en="Video Production &amp; Editing" data-es="Producción y Edición de Video">Video Production &amp; Editing</div>
+          <div class="proj-link-tags" data-en="DaVinci Resolve · YouTube · Content" data-es="DaVinci Resolve · YouTube · Contenido">DaVinci Resolve · YouTube · Content</div>
+          <div class="proj-link-arrow" data-en="View →" data-es="Ver →">View →</div>
+        </a>
+      </div>
+    </div>
+
+    <div class="page-footer"><p>© 2026 Constanza Kostyushko</p></div>
+  </div>
+
+  <div id="progress-bar"></div>
+
+  <script>
+    // ── Language (synced with homepage via localStorage) ─
+    (function() {
+      const KEY = 'portfolio-lang';
+      function apply(l) {
+        localStorage.setItem(KEY, l);
+        document.querySelectorAll('[data-en]').forEach(el => {
+          el.innerHTML = (l === 'es' && el.dataset.es) ? el.dataset.es : el.dataset.en;
+        });
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+          const active = btn.dataset.lang === l;
+          btn.style.fontWeight = active ? '700' : '400';
+          btn.style.color = active ? 'var(--accent)' : 'var(--dim)';
+          btn.style.borderBottom = active ? '1px solid var(--accent)' : '1px solid transparent';
+        });
+      }
+      window.setLang = apply;
+      document.addEventListener('DOMContentLoaded', () => apply(localStorage.getItem(KEY) || 'en'));
+    })();
+
+    // ── Scroll progress bar ──────────────────────────────
+    const bar = document.getElementById('progress-bar');
+    window.addEventListener('scroll', () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.width = (window.scrollY / max * 100) + '%';
+    }, { passive: true });
+
+    // ── Scroll reveals ───────────────────────────────────
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up').forEach(el => revealObs.observe(el));
+
+    // ── Hero 3D tilt ─────────────────────────────────────
+    const heroSection = document.querySelector('.hero');
+    const heroImg = document.querySelector('.hero-img');
+    if (heroSection && heroImg) {
+      heroSection.addEventListener('mousemove', e => {
+        const r = heroImg.getBoundingClientRect();
+        const dx = (e.clientX - r.left - r.width/2) / (r.width/2);
+        const dy = (e.clientY - r.top - r.height/2) / (r.height/2);
+        heroImg.style.transform = `perspective(700px) rotateY(${dx*7}deg) rotateX(${-dy*5}deg) scale(1.02)`;
+      });
+      heroSection.addEventListener('mouseleave', () => { heroImg.style.transform = ''; });
+    }
+
+    // ── Cursor glow ──────────────────────────────────────
+    const glow = document.createElement('div');
+    glow.style.cssText = 'position:fixed;pointer-events:none;z-index:9998;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,#9b6dbd18 0%,transparent 65%);opacity:0;transition:opacity 0.4s;transform:translate(-50%,-50%);';
+    document.body.appendChild(glow);
+    window.addEventListener('mousemove', e => { glow.style.left=e.clientX+'px'; glow.style.top=e.clientY+'px'; glow.style.opacity='1'; }, { passive: true });
+    window.addEventListener('mouseleave', () => { glow.style.opacity='0'; });
+
+    // ── Staggered key-tag reveals ────────────────────────
+    document.querySelectorAll('.key-tag').forEach((el, i) => {
+      el.style.cssText += `opacity:0;transform:translateY(12px);transition:opacity 0.4s ease ${i*0.07}s,transform 0.4s ease ${i*0.07}s,border-color 0.2s,color 0.2s`;
+    });
+    const tagObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('.key-tag').forEach(t => { t.style.opacity='1'; t.style.transform='none'; });
+          tagObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    document.querySelectorAll('.key-elements').forEach(el => tagObs.observe(el));
+  </script>
+</body>
+</html>
