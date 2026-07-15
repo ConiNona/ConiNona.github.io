@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Constanza Kostyushko | Portfolio</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #161616; font-family: 'Inter', system-ui, sans-serif; color: #f0f0f0; overflow-x: hidden; }
+    ::selection { background: #c4728a44; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #161616; }
+    ::-webkit-scrollbar-thumb { background: #5a2d3e; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #c4728a; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes float { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-7px)} }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    @keyframes iconGrow {
+      from { transform: scale(1); }
+      to   { transform: scale(1.15); }
+    }
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes bounceDown { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+    section[id] { scroll-margin-top: 110px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useContext, createContext } = React;
+
+    /* ─── THEME ─────────────────────────────── */
+    const C = {
+      accent:      "#c4728a",
+      accentLight: "#d98fa5",
+      accentDark:  "#7a3552",
+      accentGlow:  "#c4728a33",
+      bg:          "#161616",
+      surface:     "#1c1c1c",
+      card:        "#202020",
+      border:      "#2a2a2a",
+      text:        "#f0f0f0",
+      textMuted:   "#999",
+      textDim:     "#555",
+    };
+
+    /* ─── TRANSLATIONS ───────────────────────── */
+    const TRANSLATIONS = {
+      en: {
+        nav: { about: "About", skills: "Skills", projects: "Projects", contact: "Contact" },
+        phrases: [
+          "Junior Web & Digital Creator",
+          "WordPress & Framer Developer",
+          "Video Editor & Storyteller",
+          "Creative Technologist",
+        ],
+        about: {
+          greeting: "Hi, I'm",
+          bio1: "I design and build digital experiences combining web, content, and visual storytelling.",
+          bio2: "Experience in WordPress, Framer, and video editing using DaVinci Resolve.",
+          viewCV: "View CV",
+        },
+        links: { linkedin: "LinkedIn", youtube: "YouTube", email: "Email" },
+        skills: {
+          heading: "Technical & Professional Skills",
+          groups: [
+            { label: "Web Developing", years: "1+ years" },
+            { label: "Video Editing",  years: "8+ years" },
+          ],
+        },
+        projects: {
+          heading: "Featured Projects",
+          viewProject: "Visit →",
+          viewSummary: "Project Summary →",
+          list: [
+            {
+              title: "Dear Keira: A Digital Birthday Card",
+              description: "Designed and built a fully responsive website using Framer, optimized for desktop, tablet, and mobile with a focus on clean layout and user experience.",
+            },
+            {
+              title: "CMarine Surveyors Website",
+              description: "Developed a client website using WordPress, organizing content structure and applying basic SEO to improve usability and online presence.",
+            },
+            {
+              title: "Video Production & Editing",
+              description: "Edited and created videos for a YouTube channel, contributing to content quality and supporting audience growth beyond 6,000 subscribers.",
+            },
+          ],
+        },
+        footer: {
+          heading: "Thank you!",
+          sub: "Thanks for taking the time to visit my portfolio.",
+          copyright: "© 2026 Constanza Kostyushko",
+        },
+      },
+
+      es: {
+        nav: { about: "Sobre mí", skills: "Habilidades", projects: "Proyectos", contact: "Contacto" },
+        phrases: [
+          "Creadora Web & Digital Junior",
+          "Desarrolladora WordPress & Framer",
+          "Editora de Video & Storyteller",
+          "Tecnóloga Creativa",
+        ],
+        about: {
+          greeting: "Hola, soy",
+          bio1: "Diseño y construyo experiencias digitales combinando web, contenido y narrativa visual.",
+          bio2: "Experiencia en WordPress, Framer y edición de video con DaVinci Resolve.",
+          viewCV: "Ver CV",
+        },
+        links: { linkedin: "LinkedIn", youtube: "YouTube", email: "Correo electrónico" },
+        skills: {
+          heading: "Habilidades Técnicas y Profesionales",
+          groups: [
+            { label: "Desarrollo Web",   years: "1+ año" },
+            { label: "Edición de Video", years: "8+ años" },
+          ],
+        },
+        projects: {
+          heading: "Proyectos Destacados",
+          viewProject: "Visitar →",
+          viewSummary: "Resumen del proyecto →",
+          list: [
+            {
+              title: "Dear Keira: Tarjeta de Cumpleaños Digital",
+              description: "Diseñé y desarrollé un sitio web completamente responsive en Framer, optimizado para escritorio, tablet y móvil, con foco en diseño limpio y experiencia de usuario.",
+            },
+            {
+              title: "Sitio Web CMarine Surveyors",
+              description: "Desarrollé un sitio web para un cliente usando WordPress, organizando la estructura de contenido y aplicando SEO básico para mejorar la usabilidad y presencia online.",
+            },
+            {
+              title: "Producción y Edición de Video",
+              description: "Edité y creé videos para un canal de YouTube, contribuyendo a la calidad del contenido y al crecimiento de la audiencia más allá de los 6,000 suscriptores.",
+            },
+          ],
+        },
+        footer: {
+          heading: "¡Gracias!",
+          sub: "Gracias por tomarte el tiempo de visitar mi portafolio.",
+          copyright: "© 2026 Constanza Kostyushko",
+        },
+      },
+    };
+
+    /* ─── PROJECT META (non-translatable) ────── */
+    const PROJECT_META = [
+      {
+        accent: "#9b6dbd", accentLight: "#b48fd4", accentDark: "#5e3680", accentGlow: "#9b6dbd33",
+        tags:    ["Framer", "Responsive Web Design"],
+        imgFile: "project-framer.jpg",
+        imgBg:   "linear-gradient(135deg, #3b2f6e 0%, #6b3a7d 50%, #c4728a 100%)",
+        link:    "",
+        summary: "project-framer.html",
+      },
+      {
+        accent: "#3a8fc7", accentLight: "#6aafd9", accentDark: "#1e5a8a", accentGlow: "#3a8fc733",
+        tags:    ["WordPress", "SEO Basics", "Web Structure"],
+        imgFile: "project-cmarine.jpg",
+        imgBg:   "linear-gradient(135deg, #1a3a5c 0%, #1e5a8a 50%, #2980b9 100%)",
+        link:    "https://cmarinesurveyors.com/",
+        summary: "project-cmarine.html",
+      },
+      {
+        accent: "#d94f4f", accentLight: "#e47a7a", accentDark: "#962b2b", accentGlow: "#d94f4f33",
+        tags:    ["DaVinci Resolve", "Content Creation", "Video Editing"],
+        imgFile: "project-youtube.jpg",
+        imgBg:   "linear-gradient(135deg, #2a0a0a 0%, #6b1f1f 50%, #c0321e 100%)",
+        link:    "https://www.youtube.com/@cocinarconlana",
+        summary: "project-youtube.html",
+      },
+    ];
+
+    /* ─── SKILL ICONS ─────────────────────────── */
+    const SKILL_ICON_GROUPS = [
+      [
+        { name: "WordPress",  img: "wordpress.png",  url: "https://wordpress.org" },
+        { name: "Framer",     img: null,             url: "https://framer.com", framer: true },
+      ],
+      [
+        { name: "DaVinci Resolve", img: "davinci.png",  url: "https://www.blackmagicdesign.com/products/davinciresolve" },
+        { name: "YouTube",         img: "youtube.png",  url: "https://www.youtube.com" },
+      ],
+    ];
+
+    /* ─── LANGUAGE CONTEXT ───────────────────── */
+    const LangCtx = createContext({ lang: "en", setLang: () => {}, T: TRANSLATIONS.en });
+
+    /* ─── HOOKS ──────────────────────────────── */
+    function useInView(threshold = 0.12) {
+      const ref = useRef(null);
+      const [inView, setInView] = useState(false);
+      useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(
+          ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
+          { threshold }
+        );
+        obs.observe(el);
+        return () => obs.disconnect();
+      }, [threshold]);
+      return [ref, inView];
+    }
+
+    function useTypewriter(phrases, resetKey, typingSpeed = 65, deleteSpeed = 35, pauseMs = 2200) {
+      const [display, setDisplay] = useState("");
+      const [phaseIdx, setPhaseIdx] = useState(0);
+      const [charIdx, setCharIdx] = useState(0);
+      const [deleting, setDeleting] = useState(false);
+      const [pausing, setPausing] = useState(false);
+
+      useEffect(() => {
+        setDisplay(""); setPhaseIdx(0); setCharIdx(0); setDeleting(false); setPausing(false);
+      }, [resetKey]);
+
+      useEffect(() => {
+        if (pausing) {
+          const t = setTimeout(() => { setPausing(false); setDeleting(true); }, pauseMs);
+          return () => clearTimeout(t);
+        }
+        const current = phrases[phaseIdx];
+        if (!deleting && charIdx < current.length) {
+          const t = setTimeout(() => { setCharIdx(c => c + 1); setDisplay(current.slice(0, charIdx + 1)); }, typingSpeed);
+          return () => clearTimeout(t);
+        }
+        if (!deleting && charIdx === current.length) { setPausing(true); return; }
+        if (deleting && charIdx > 0) {
+          const t = setTimeout(() => { setCharIdx(c => c - 1); setDisplay(current.slice(0, charIdx - 1)); }, deleteSpeed);
+          return () => clearTimeout(t);
+        }
+        if (deleting && charIdx === 0) { setDeleting(false); setPhaseIdx(i => (i + 1) % phrases.length); }
+      }, [charIdx, deleting, pausing, phaseIdx, phrases, typingSpeed, deleteSpeed, pauseMs]);
+
+      return display;
+    }
+
+    /* ─── REVEAL ─────────────────────────────── */
+    function Reveal({ children, delay = 0, from = "bottom", style = {} }) {
+      const [ref, inView] = useInView();
+      const transforms = { bottom: "translateY(30px)", left: "translateX(-30px)", right: "translateX(30px)", scale: "scale(0.94)" };
+      return (
+        <div ref={ref} style={{
+          opacity: inView ? 1 : 0,
+          transform: inView ? "none" : transforms[from],
+          transition: `opacity 0.75s cubic-bezier(.22,1,.36,1) ${delay}s, transform 0.75s cubic-bezier(.22,1,.36,1) ${delay}s`,
+          ...style,
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    /* ─── HEADER ─────────────────────────────── */
+    function Header() {
+      return (
+        <div style={{ position: "relative", height: 300, overflow: "hidden" }}>
+          {/* Animated gradient background */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(-45deg, #0d0d0d, #1e0a14, #3b1225, #7a3552, #c4728a, #7a3552, #3b1225, #1e0a14)",
+            backgroundSize: "400% 400%",
+            animation: "gradientShift 10s ease infinite",
+          }}/>
+          {/* Noise grain overlay for texture */}
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E")`,
+            opacity: 0.18,
+            mixBlendMode: "overlay",
+          }}/>
+          {/* Subtle radial vignette */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.55) 100%)",
+          }}/>
+          {/* Bottom fade to page bg */}
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 120, background: "linear-gradient(transparent, #161616)" }}/>
+        </div>
+      );
+    }
+
+
+    /* ─── SKILL CARD ─────────────────────────── */
+    function SkillGroup({ groupIndex, delay }) {
+      const { T } = useContext(LangCtx);
+      const { label, years } = T.skills.groups[groupIndex];
+      const icons = SKILL_ICON_GROUPS[groupIndex];
+
+      return (
+        <Reveal delay={delay}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: "1.75rem 2rem", display: "flex", flexDirection: "column", gap: 20, alignItems: "center" }}>
+            <div style={{ textAlign: "center" }}>
+              <p style={{ fontSize: 13, color: C.textMuted, marginBottom: 4 }}><span style={{ color: C.accent }}>★</span> {label}</p>
+              <p style={{ fontSize: 13, color: C.textDim }}>{years}</p>
+            </div>
+            <div style={{ display: "flex", gap: 36, alignItems: "center", justifyContent: "center" }}>
+              {icons.map((icon, i) => {
+                const [hover, setHover] = useState(false);
+                return (
+                  <a
+                    key={i}
+                    href={icon.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onMouseEnter={() => setHover(true)}
+                    onMouseLeave={() => setHover(false)}
+                    style={{
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
+                      textDecoration: "none",
+                      transition: "transform 0.25s cubic-bezier(.22,1,.36,1)",
+                      transform: hover ? "scale(1.14)" : "scale(1)",
+                    }}
+                  >
+                    <div style={{
+                      width: 90, height: 90, borderRadius: 21,
+                      background: C.surface,
+                      border: `1px solid ${hover ? C.accentDark : "#333"}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      overflow: "hidden",
+                      transition: "border-color 0.25s, box-shadow 0.25s",
+                      boxShadow: hover ? `0 0 28px ${C.accentGlow}` : "none",
+                    }}>
+                      {icon.framer ? (
+                        <svg viewBox="9 7 14 20" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+                          <path fill="#88ddff" d="m 9,7 7,6.6667 h 7 V 7 Z"/>
+                          <path fill="#00aaff" d="M 16,13.6665 H 9 v 6.6667 h 14 z"/>
+                          <path fill="#0055ff" d="m 9,20.3335 h 7 v 6.6667 z"/>
+                        </svg>
+                      ) : (
+                        <img
+                          src={icon.img}
+                          alt={icon.name}
+                          style={{ width: 58, height: 58, objectFit: "contain" }}
+                        />
+                      )}
+                    </div>
+                    <span style={{ fontSize: 12, color: hover ? C.accent : C.textMuted, transition: "color 0.2s" }}>
+                      {icon.name}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    /* ─── PROJECT CARD ───────────────────────── */
+    function ProjectCard({ index }) {
+      const { T } = useContext(LangCtx);
+      const [hover, setHover] = useState(false);
+      const [imgErr, setImgErr] = useState(false);
+      const isEven = index % 2 === 0;
+      const meta = PROJECT_META[index];
+      const proj = { ...T.projects.list[index], ...meta };
+      const A = { accent: meta.accent, accentLight: meta.accentLight, accentDark: meta.accentDark, accentGlow: meta.accentGlow };
+
+      return (
+        <Reveal delay={index * 0.12}>
+          <div
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            style={{
+              display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0,
+              borderRadius: 18, overflow: "hidden",
+              background: C.card,
+              border: `1px solid ${hover ? A.accentDark : C.border}`,
+              transition: "border-color 0.35s, transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s",
+              transform: hover ? "translateY(-10px) scale(1.012)" : "none",
+              boxShadow: hover ? `0 24px 60px ${A.accentGlow}, 0 8px 24px rgba(0,0,0,0.5)` : "0 2px 8px rgba(0,0,0,0.2)",
+            }}
+          >
+            {/* Text side */}
+            <div style={{ padding: "2.25rem 2.5rem", display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, order: isEven ? 0 : 1 }}>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: 600, color: C.text, lineHeight: 1.3 }}>{proj.title}</h3>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {proj.tags.map((tag, i) => (
+                  <span key={i} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, background: `${A.accentDark}30`, color: A.accentLight, border: `1px solid ${A.accentDark}50`, letterSpacing: "0.02em" }}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7 }}>{proj.description}</p>
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 4 }}>
+                <a
+                  href={proj.summary}
+                  onClick={() => sessionStorage.setItem('portfolio-scroll', String(window.scrollY))}
+                  style={{
+                    fontSize: 13, color: A.accent, textDecoration: "none",
+                    borderBottom: `1px solid ${A.accentDark}`, paddingBottom: 2,
+                    transition: "color 0.2s, border-color 0.2s",
+                    fontWeight: 500,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = A.accentLight; e.currentTarget.style.borderColor = A.accentLight; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = A.accent; e.currentTarget.style.borderColor = A.accentDark; }}
+                >
+                  {T.projects.viewSummary}
+                </a>
+              </div>
+            </div>
+
+            {/* Image side — also a link to the project */}
+            <a
+              href={proj.summary}
+              onClick={() => sessionStorage.setItem('portfolio-scroll', String(window.scrollY))}
+              style={{ order: isEven ? 1 : 0, position: "relative", overflow: "hidden", minHeight: 240, background: proj.imgBg, display: "block", textDecoration: "none" }}
+            >
+              {!imgErr ? (
+                <img
+                  src={proj.imgFile}
+                  alt={proj.title}
+                  onError={() => setImgErr(true)}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease", transform: hover ? "scale(1.09)" : "scale(1)" }}
+                />
+              ) : (
+                <div style={{ position: "absolute", inset: 0, background: proj.imgBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", fontStyle: "italic" }}>[ project screenshot ]</span>
+                </div>
+              )}
+              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${A.accentDark}22, transparent)`, opacity: hover ? 1 : 0, transition: "opacity 0.35s" }}/>
+              <div style={{ position: "absolute", bottom: 12, right: 14, fontSize: 11, letterSpacing: "0.07em", fontWeight: 500, color: "rgba(255,255,255,0.75)", textShadow: "0 1px 6px rgba(0,0,0,0.7)", opacity: hover ? 1 : 0, transition: "opacity 0.3s" }}>
+                View →
+              </div>
+            </a>
+          </div>
+        </Reveal>
+      );
+    }
+
+    /* ─── SCROLL HINT ───────────────────────── */
+    function ScrollHint() {
+      const [visible, setVisible] = React.useState(true);
+      useEffect(() => {
+        const h = () => setVisible(window.scrollY < 80);
+        window.addEventListener('scroll', h, { passive: true });
+        return () => window.removeEventListener('scroll', h);
+      }, []);
+      return (
+        <div style={{
+          position: 'fixed', bottom: 44, left: '50%', transform: 'translateX(-50%)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+          opacity: visible ? 0.6 : 0, transition: 'opacity 0.5s',
+          pointerEvents: 'none', zIndex: 50,
+        }}>
+          <span style={{ fontSize: 10, color: C.textDim, letterSpacing: '0.14em', textTransform: 'uppercase' }}>scroll</span>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ animation: 'bounceDown 1.5s ease-in-out infinite' }}>
+            <path d="M4 6.5l5 5 5-5" stroke={C.accentDark} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      );
+    }
+
+    /* ─── CURSOR GLOW ────────────────────────── */
+    function CursorGlow() {
+      const [pos, setPos] = useState({ x: -300, y: -300 });
+      const [visible, setVisible] = useState(false);
+      useEffect(() => {
+        const move = (e) => { setPos({ x: e.clientX, y: e.clientY }); setVisible(true); };
+        const leave = () => setVisible(false);
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseleave", leave);
+        return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseleave", leave); };
+      }, []);
+      return (
+        <div style={{ position: "fixed", pointerEvents: "none", zIndex: 9999, left: pos.x-200, top: pos.y-200, width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${C.accent}18 0%, transparent 65%)`, opacity: visible ? 1 : 0, transition: "opacity 0.4s, left 0.08s linear, top 0.08s linear" }}/>
+      );
+    }
+
+    /* ─── ANZA GLOW TEXT ─────────────────────── */
+    function AnzaGlowText({ lang }) {
+      const pRef = useRef(null);
+      useEffect(() => {
+        const handler = (e) => {
+          if (!pRef.current) return;
+          const rect = pRef.current.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+          const t = Math.max(0, 1 - dist / 220);
+          if (t > 0.01) {
+            const spread = Math.round(6 + t * 18);
+            const alpha = Math.round(t * 180).toString(16).padStart(2, '0');
+            pRef.current.style.textShadow = `0 0 ${spread}px #c4728a${alpha}`;
+          } else {
+            pRef.current.style.textShadow = 'none';
+          }
+        };
+        window.addEventListener('mousemove', handler);
+        return () => window.removeEventListener('mousemove', handler);
+      }, []);
+      return (
+        <p ref={pRef} style={{ fontSize: 14, color: C.textDim, marginTop: 8, transition: 'text-shadow 0.2s ease' }}>
+          {lang === 'es' ? 'También la creativa detrás de ' : 'Also the creative behind '}
+          <a href="art-portfolio.html" target="_blank" rel="noreferrer"
+            style={{ color: C.accent, textDecoration: "none", borderBottom: `1px solid ${C.accentDark}`, paddingBottom: 1, transition: "color 0.2s, border-color 0.2s" }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.accentLight; e.currentTarget.style.borderColor = C.accentLight; }}
+            onMouseLeave={e => { e.currentTarget.style.color = C.accent; e.currentTarget.style.borderColor = C.accentDark; }}
+          >Anza by ck.</a>
+        </p>
+      );
+    }
+
+    /* ─── NAV ────────────────────────────────── */
+    const NAV_PROJECT_LINKS = [
+      { title: "Dear Keira: A Digital Birthday Card", href: "project-framer.html", color: "#9b6dbd" },
+      { title: "CMarine Surveyors Website",            href: "project-cmarine.html", color: "#3a8fc7" },
+      { title: "Video Production & Editing",           href: "project-youtube.html", color: "#d94f4f" },
+    ];
+
+    function Nav() {
+      const { lang, setLang, T } = useContext(LangCtx);
+      const [scrolled, setScrolled] = useState(false);
+      const [dropOpen, setDropOpen] = useState(false);
+      const [hoveredIdx, setHoveredIdx] = useState(null);
+      const [dropRect, setDropRect] = useState(null);
+      const projRef = useRef(null);
+      const closeTimer = useRef(null);
+
+      useEffect(() => {
+        const h = () => setScrolled(window.scrollY > 40);
+        window.addEventListener("scroll", h);
+        return () => window.removeEventListener("scroll", h);
+      }, []);
+
+
+      const openDrop = () => {
+        clearTimeout(closeTimer.current);
+        if (projRef.current) setDropRect(projRef.current.getBoundingClientRect());
+        setDropOpen(true);
+      };
+      const closeDrop = () => { closeTimer.current = setTimeout(() => setDropOpen(false), 80); };
+      const cancelClose = () => clearTimeout(closeTimer.current);
+
+      const navLink = (href, label) => (
+        <a href={href} style={{ color: C.textMuted, fontSize: 13, textDecoration: "none", transition: "color 0.2s", letterSpacing: "0.05em" }}
+          onMouseEnter={e => e.target.style.color = C.accent}
+          onMouseLeave={e => e.target.style.color = C.textMuted}
+        >{label}</a>
+      );
+
+      const LangBtn = ({ code }) => {
+        const active = lang === code;
+        return (
+          <button onMouseDown={e => { e.preventDefault(); setLang(code); }} style={{ background: "none", border: "none", cursor: active ? "default" : "pointer", fontSize: 12, fontWeight: active ? 700 : 400, color: active ? C.accent : C.textMuted, letterSpacing: "0.08em", padding: "6px 8px", borderBottom: active ? `1px solid ${C.accent}` : "1px solid transparent", transition: "color 0.2s, border-color 0.2s" }}
+            onMouseEnter={e => { if (!active) e.currentTarget.style.color = C.text; }}
+            onMouseLeave={e => { if (!active) e.currentTarget.style.color = C.textMuted; }}
+          >
+            {code.toUpperCase()}
+          </button>
+        );
+      };
+
+      /* Dropdown rendered as a portal at document.body so backdrop-filter works */
+      const dropdownPortal = dropOpen && dropRect && ReactDOM.createPortal(
+        <div
+          style={{
+            position: "fixed",
+            top: dropRect.bottom + 8,
+            right: window.innerWidth - dropRect.right - 4,
+            zIndex: 9999,
+          }}
+          onMouseEnter={cancelClose}
+          onMouseLeave={closeDrop}
+        >
+          <div style={{
+            background: "rgba(15,15,15,0.45)",
+            border: "1px solid rgba(255,255,255,0.10)",
+            borderRadius: 4,
+            padding: "6px",
+            minWidth: 260,
+            backdropFilter: "blur(40px) saturate(1.5)",
+            WebkitBackdropFilter: "blur(40px) saturate(1.5)",
+            boxShadow: "0 12px 32px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.3)",
+          }}>
+            {NAV_PROJECT_LINKS.map(({ title, href, color }, idx) => (
+              <a key={href} href={href}
+                onMouseEnter={() => setHoveredIdx(idx)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "9px 14px", borderRadius: 2,
+                  color: hoveredIdx === idx ? color : C.textMuted,
+                  fontSize: 12, letterSpacing: "0.04em", textDecoration: "none",
+                  background: hoveredIdx === idx ? `${color}12` : "transparent",
+                  transition: "background 0.15s, color 0.15s",
+                }}
+              >
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0, opacity: hoveredIdx === idx ? 1 : 0.45, transition: "opacity 0.15s" }}/>
+                {title}
+              </a>
+            ))}
+          </div>
+        </div>,
+        document.body
+      );
+
+      return (
+        <>
+          <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: "0 2rem", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: scrolled ? `${C.bg}ee` : "transparent", borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent", backdropFilter: scrolled ? "blur(12px)" : "none", transition: "background 0.3s, border-color 0.3s" }}>
+            <a href="#" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ fontSize: 24, fontWeight: 600, letterSpacing: "0.1em", color: C.text, fontFamily: "'Playfair Display', serif", textDecoration: 'none', cursor: 'pointer' }}>CK<span style={{ display: "inline-block", width: 4, height: 4, background: C.accent, marginLeft: 2, verticalAlign: "baseline" }} /></a>
+            <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
+              {navLink("#about", T.nav.about)}
+              {navLink("#skills", T.nav.skills)}
+
+              {/* Projects nav item — dropdown rendered via portal */}
+              <div
+                ref={projRef}
+                style={{ position: "relative" }}
+                onMouseEnter={openDrop}
+                onMouseLeave={closeDrop}
+              >
+                <a href="#projects" style={{ color: dropOpen ? C.accent : C.textMuted, fontSize: 13, textDecoration: "none", transition: "color 0.2s", letterSpacing: "0.05em" }}>
+                  {T.nav.projects}
+                </a>
+              </div>
+
+              {navLink("#contact", T.nav.contact)}
+              <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}>
+                <LangBtn code="en" /><span style={{ color: C.textDim, fontSize: 11 }}>|</span><LangBtn code="es" />
+              </div>
+            </div>
+          </nav>
+          {dropdownPortal}
+        </>
+      );
+    }
+
+    /* ─── DIVIDER ────────────────────────────── */
+    function Divider() {
+      return <div style={{ width: "100%", height: 1, background: `linear-gradient(90deg, transparent, ${C.border}, transparent)`, margin: "3.5rem 0" }}/>;
+    }
+
+    /* ─── MAIN APP ───────────────────────────── */
+    function Portfolio() {
+      const [lang, setLang] = useState(() => localStorage.getItem('portfolio-lang') || 'en');
+      useEffect(() => { localStorage.setItem('portfolio-lang', lang); }, [lang]);
+      useEffect(() => {
+        if (!window.location.hash) return;
+        const id = window.location.hash.slice(1);
+        const tryScroll = (attempts) => {
+          const el = document.getElementById(id);
+          if (el) { el.scrollIntoView({ behavior: 'smooth' }); }
+          else if (attempts < 15) { setTimeout(() => tryScroll(attempts + 1), 80); }
+        };
+        setTimeout(() => tryScroll(0), 100);
+      }, []);
+
+      /* Restore scroll position when returning from a project page */
+      useEffect(() => {
+        const savedY = sessionStorage.getItem('portfolio-scroll');
+        if (savedY !== null) {
+          sessionStorage.removeItem('portfolio-scroll');
+          requestAnimationFrame(() => window.scrollTo(0, parseInt(savedY, 10)));
+        }
+      }, []);
+      const T = TRANSLATIONS[lang];
+      const typed = useTypewriter(T.phrases, lang);
+      const [photoErr, setPhotoErr] = useState(false);
+
+      return (
+        <LangCtx.Provider value={{ lang, setLang, T }}>
+          <div style={{ background: C.bg, minHeight: "100vh" }}>
+            <CursorGlow />
+            <ScrollHint />
+            <Nav />
+            <Header />
+
+            {/* ── TITLE BLOCK ── */}
+            <div style={{ textAlign: "center", padding: "0 1rem 1.5rem", animation: "fadeUp 0.8s ease both" }}>
+              <h1 style={{ fontSize: "clamp(1.8rem, 5vw, 3rem)", fontWeight: 700, letterSpacing: "-0.02em", fontFamily: "'Playfair Display', serif" }}>
+                Constanza Kostyushko
+              </h1>
+              <div style={{ marginTop: "0.9rem", minHeight: "1.6em", display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                <span style={{ color: C.accent, fontSize: "clamp(0.9rem, 2.5vw, 1.1rem)", fontWeight: 400 }}>{typed}</span>
+                <span style={{ color: C.accent, animation: "blink 1s step-end infinite", fontSize: "1.1rem" }}>|</span>
+              </div>
+            </div>
+
+            <main style={{ maxWidth: 960, margin: "0 auto", padding: "1rem 1.5rem 5rem" }}>
+              <Divider />
+
+              {/* ── ABOUT ── */}
+              <section id="about" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "center" }}>
+                <Reveal from="left">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <h2 style={{ fontSize: "clamp(1.6rem, 4vw, 2.2rem)", fontWeight: 700, fontFamily: "'Playfair Display', serif" }}>
+                      {T.about.greeting} <span style={{ color: C.accent }}>Constanza</span>
+                    </h2>
+                    <p style={{ fontSize: "1rem", color: C.textMuted, lineHeight: 1.8, maxWidth: 480 }}>{T.about.bio1}</p>
+                    <p style={{ fontSize: "1rem", color: C.textMuted, lineHeight: 1.8, maxWidth: 480 }}>{T.about.bio2}</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
+                      <a href={lang === 'es' ? 'CV_CK_ES.pdf' : 'CV_CK_EN.pdf'} target="_blank" rel="noreferrer" style={{ display: "inline-block", padding: "10px 22px", background: C.accentDark, color: C.text, borderRadius: 8, fontSize: 14, fontWeight: 500, textDecoration: "none", border: `1px solid ${C.accent}50`, transition: "background 0.25s, transform 0.2s" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = C.accentDark; e.currentTarget.style.transform = "none"; }}
+                      >
+                        {T.about.viewCV}
+                      </a>
+                    </div>
+                    <div style={{ display: "flex", gap: 20, marginTop: 4 }}>
+                      {[
+                        { key: "linkedin", href: "https://www.linkedin.com/in/constanza-kostyushko-a2909b317/", newTab: true },
+                        { key: "youtube",  href: "https://www.youtube.com/@ConstanzaKr", newTab: true },
+                        { key: "email",    href: "https://mail.google.com/mail/?view=cm&to=coni.nona@gmail.com", newTab: true },
+                      ].map(({ key, href, newTab }) => (
+                        <a key={key} href={href} target={newTab ? "_blank" : "_self"} rel="noreferrer" style={{ color: C.textMuted, fontSize: 13, textDecoration: "none", borderBottom: `1px solid ${C.textDim}`, paddingBottom: 2, transition: "color 0.2s, border-color 0.2s" }}
+                          onMouseEnter={e => { e.currentTarget.style.color = C.accent; e.currentTarget.style.borderColor = C.accent; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.borderColor = C.textDim; }}
+                        >
+                          {T.links[key]}
+                        </a>
+                      ))}
+                    </div>
+                    <AnzaGlowText lang={lang} />
+                  </div>
+                </Reveal>
+
+                <Reveal from="right" delay={0.15}>
+                  <div style={{ position: "relative" }}>
+                    <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: `1px solid ${C.accentDark}`, animation: "float 5s ease-in-out infinite" }}/>
+                    <div style={{ width: 220, height: 220, borderRadius: "50%", overflow: "hidden", border: `3px solid ${C.accentDark}`, background: C.surface, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {!photoErr ? (
+                        <img src="coni.jpg" alt="Constanza Kostyushko" onError={() => setPhotoErr(true)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}/>
+                      ) : (
+                        <div style={{ textAlign: "center", color: C.textDim, fontSize: 13, padding: 16 }}>
+                          <div style={{ fontSize: 40, marginBottom: 8, color: C.accentDark }}>CK</div>
+                          <div style={{ fontSize: 11, fontStyle: "italic" }}>add coni.jpg</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Reveal>
+              </section>
+
+              <Divider />
+
+              {/* ── SKILLS ── */}
+              <section id="skills">
+                <Reveal>
+                  <h2 style={{ fontSize: "1.5rem", fontWeight: 600, fontFamily: "'Playfair Display', serif", marginBottom: "2rem", textAlign: "center" }}>
+                    {T.skills.heading}
+                  </h2>
+                </Reveal>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  {T.skills.groups.map((_, i) => <SkillGroup key={i} groupIndex={i} delay={i * 0.1} />)}
+                </div>
+              </section>
+
+              <Divider />
+
+              {/* ── PROJECTS ── */}
+              <section id="projects">
+                <Reveal>
+                  <h2 style={{ fontSize: "1.5rem", fontWeight: 600, fontFamily: "'Playfair Display', serif", marginBottom: "2rem", textAlign: "center" }}>
+                    {T.projects.heading}
+                  </h2>
+                </Reveal>
+                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                  {PROJECT_META.map((_, i) => <ProjectCard key={i} index={i} />)}
+                </div>
+              </section>
+
+              <Divider />
+
+              {/* ── CONTACT / FOOTER ── */}
+              <section id="contact">
+                <Reveal>
+                  <div style={{ textAlign: "center", padding: "2rem 0 1rem" }}>
+                    <h2 style={{ fontSize: "2.5rem", fontWeight: 700, fontFamily: "'Playfair Display', serif", color: C.accent, marginBottom: "1rem" }}>
+                      {T.footer.heading}
+                    </h2>
+                    <p style={{ fontStyle: "italic", color: C.textMuted, fontSize: "1rem", fontFamily: "'Playfair Display', serif" }}>
+                      {T.footer.sub}
+                    </p>
+                    <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: "2rem" }}>
+                      {[
+                        { key: "linkedin", href: "https://www.linkedin.com/in/constanza-kostyushko-a2909b317/", newTab: true },
+                        { key: "youtube",  href: "https://www.youtube.com/@ConstanzaKr", newTab: true },
+                        { key: "email",    href: "https://mail.google.com/mail/?view=cm&to=coni.nona@gmail.com", newTab: true },
+                      ].map(({ key, href, newTab }) => (
+                        <a key={key} href={href} target={newTab ? "_blank" : "_self"} rel="noreferrer" style={{ color: C.textMuted, fontSize: 13, textDecoration: "none", borderBottom: `1px solid ${C.textDim}`, paddingBottom: 2, transition: "color 0.2s, border-color 0.2s" }}
+                          onMouseEnter={e => { e.currentTarget.style.color = C.accent; e.currentTarget.style.borderColor = C.accent; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.borderColor = C.textDim; }}
+                        >
+                          {T.links[key]}
+                        </a>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: "5rem", paddingTop: "2rem", borderTop: `1px solid ${C.border}` }}>
+                      <p style={{ fontSize: 12, color: C.textMuted, marginBottom: 10 }}>
+                        {lang === 'es' ? 'También visita mi marca personal:' : 'Also visit my personal brand:'}
+                      </p>
+                      <a href="art-portfolio.html" target="_blank" rel="noreferrer"
+                        style={{ fontSize: 13, color: C.accent, textDecoration: 'none', borderBottom: `1px solid ${C.accentDark}`, paddingBottom: 2, transition: 'color 0.2s, border-color 0.2s' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = C.accentLight; e.currentTarget.style.borderColor = C.accentLight; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = C.accent; e.currentTarget.style.borderColor = C.accentDark; }}
+                      >
+                        Anza by ck. →
+                      </a>
+                    </div>
+                    <p style={{ marginTop: "1.5rem", fontSize: 11, color: C.textDim, letterSpacing: "0.05em" }}>{T.footer.copyright}</p>
+                  </div>
+                </Reveal>
+              </section>
+            </main>
+          </div>
+        </LangCtx.Provider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Portfolio />);
+  </script>
+</body>
+</html>
