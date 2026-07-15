@@ -36,7 +36,7 @@
     }
     @keyframes bounceDown { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
     @keyframes pinkGlow { 0%,100%{box-shadow:0 0 8px #c4728a44,0 0 18px #c4728a1a} 50%{box-shadow:0 0 22px #c4728a99,0 0 44px #c4728a44} }
-    @keyframes seqGlow { 0%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} 10%{box-shadow:0 0 24px #c4728acc,0 0 46px #c4728a66} 38%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} 100%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} }
+    @keyframes seqGlow { 0%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} 9%{box-shadow:0 0 24px #c4728acc,0 0 46px #c4728a66} 30%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} 100%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} }
     section[id] { scroll-margin-top: 110px; }
   </style>
 </head>
@@ -348,7 +348,7 @@
                       display: "flex", alignItems: "center", justifyContent: "center",
                       overflow: "hidden",
                       transition: "border-color 0.25s, box-shadow 0.25s",
-                      animation: isMobile ? `seqGlow 4s ease-in-out ${(groupIndex * 2 + i) * 0.8}s infinite` : undefined,
+                      animation: isMobile ? `seqGlow 4s ease-in-out ${(groupIndex * 2 + i) * 0.7}s infinite` : undefined,
                       boxShadow: isMobile ? undefined : (hover ? `0 0 28px ${C.accentGlow}` : "none"),
                     }}>
                       {icon.framer ? (
@@ -462,6 +462,7 @@
 
     /* ─── SCROLL HINT ───────────────────────── */
     function ScrollHint() {
+      const isMobile = useIsMobile();
       const [visible, setVisible] = React.useState(true);
       useEffect(() => {
         const h = () => setVisible(window.scrollY < 80);
@@ -470,7 +471,10 @@
       }, []);
       return (
         <div style={{
-          position: 'fixed', bottom: 44, left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed',
+          ...(isMobile
+            ? { bottom: 36, right: '1.25rem' }
+            : { bottom: 44, left: '50%', transform: 'translateX(-50%)' }),
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
           opacity: visible ? 0.6 : 0, transition: 'opacity 0.5s',
           pointerEvents: 'none', zIndex: 50,
@@ -747,15 +751,13 @@
               <h1 style={{ fontSize: "clamp(1.8rem, 5vw, 3rem)", fontWeight: 700, letterSpacing: "-0.02em", fontFamily: "'Playfair Display', serif", textShadow: isMobile ? "0 2px 12px rgba(0,0,0,0.85), 0 1px 4px rgba(0,0,0,0.95)" : "none" }}>
                 Constanza Kostyushko
               </h1>
-              {!isMobile && (
-                <div style={{ marginTop: "0.9rem", minHeight: "1.6em", display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
-                  <span style={{ color: C.accent, fontSize: "clamp(0.9rem, 2.5vw, 1.1rem)", fontWeight: 400 }}>{typed}</span>
-                  <span style={{ color: C.accent, animation: "blink 1s step-end infinite", fontSize: "1.1rem" }}>|</span>
-                </div>
-              )}
+              <div style={{ marginTop: "0.9rem", minHeight: "1.6em", display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                <span style={{ color: C.accent, fontSize: "clamp(0.9rem, 2.5vw, 1.1rem)", fontWeight: 400, textShadow: isMobile ? "0 1px 8px rgba(0,0,0,0.8)" : "none" }}>{typed}</span>
+                <span style={{ color: C.accent, animation: "blink 1s step-end infinite", fontSize: "1.1rem" }}>|</span>
+              </div>
             </div>
 
-            <main style={{ maxWidth: 960, margin: "0 auto", padding: "1rem 1.5rem 5rem" }}>
+            <main style={{ maxWidth: 960, margin: "0 auto", padding: isMobile ? "2.75rem 1.25rem 5rem" : "1rem 1.5rem 5rem" }}>
               <Divider />
 
               {/* ── ABOUT ── */}
@@ -789,17 +791,7 @@
                         </a>
                       ))}
                     </div>
-                    {isMobile ? (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" }}>
-                        <AnzaGlowText lang={lang} />
-                        <div style={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0, marginLeft: "0.75rem" }}>
-                          <span style={{ color: C.accent, fontSize: 12, fontWeight: 400, whiteSpace: "nowrap" }}>{typed}</span>
-                          <span style={{ color: C.accent, animation: "blink 1s step-end infinite", fontSize: "0.85rem" }}>|</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <AnzaGlowText lang={lang} />
-                    )}
+                    <AnzaGlowText lang={lang} />
                   </div>
                 </Reveal>
 
