@@ -36,6 +36,7 @@
     }
     @keyframes bounceDown { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
     @keyframes pinkGlow { 0%,100%{box-shadow:0 0 8px #c4728a44,0 0 18px #c4728a1a} 50%{box-shadow:0 0 22px #c4728a99,0 0 44px #c4728a44} }
+    @keyframes seqGlow { 0%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} 10%{box-shadow:0 0 24px #c4728acc,0 0 46px #c4728a66} 28%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} 100%{box-shadow:0 0 4px #c4728a22,0 0 8px #c4728a11} }
     section[id] { scroll-margin-top: 110px; }
   </style>
 </head>
@@ -281,7 +282,7 @@
     /* ─── HEADER ─────────────────────────────── */
     function Header({ isMobile = false }) {
       return (
-        <div style={{ position: "relative", height: isMobile ? 160 : 300, overflow: "hidden" }}>
+        <div style={{ position: "relative", height: 300, overflow: "hidden" }}>
           {/* Animated gradient background */}
           <div style={{
             position: "absolute", inset: 0,
@@ -347,7 +348,7 @@
                       display: "flex", alignItems: "center", justifyContent: "center",
                       overflow: "hidden",
                       transition: "border-color 0.25s, box-shadow 0.25s",
-                      animation: isMobile ? "pinkGlow 2.5s ease-in-out infinite" : undefined,
+                      animation: isMobile ? `seqGlow 4s ease-in-out ${groupIndex * 2 + i}s infinite` : undefined,
                       boxShadow: isMobile ? undefined : (hover ? `0 0 28px ${C.accentGlow}` : "none"),
                     }}>
                       {icon.framer ? (
@@ -399,7 +400,7 @@
               border: `1px solid ${hover ? A.accentDark : C.border}`,
               transition: "border-color 0.35s, transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s",
               transform: hover ? "translateY(-10px) scale(1.012)" : "none",
-              boxShadow: isMobile ? `0 0 0 1px ${A.accentDark}50, 0 0 28px ${A.accentGlow}, 0 4px 12px rgba(0,0,0,0.3)` : (hover ? `0 24px 60px ${A.accentGlow}, 0 8px 24px rgba(0,0,0,0.5)` : "0 2px 8px rgba(0,0,0,0.2)"),
+              boxShadow: isMobile ? `0 0 0 2px ${A.accentDark}80, 0 0 18px ${A.accent}55, 0 0 40px ${A.accent}28, 0 4px 12px rgba(0,0,0,0.35)` : (hover ? `0 24px 60px ${A.accentGlow}, 0 8px 24px rgba(0,0,0,0.5)` : "0 2px 8px rgba(0,0,0,0.2)"),
             }}
           >
             {/* Text side */}
@@ -742,7 +743,7 @@
             <Header isMobile={isMobile} />
 
             {/* ── TITLE BLOCK ── */}
-            <div style={{ textAlign: "center", padding: isMobile ? "0 1rem 0.5rem" : "0 1rem 1.5rem", animation: "fadeUp 0.8s ease both", marginTop: isMobile ? "-70px" : 0, position: "relative", zIndex: 2 }}>
+            <div style={{ textAlign: "center", padding: isMobile ? "0 1rem 0.5rem" : "0 1rem 1.5rem", animation: "fadeUp 0.8s ease both", marginTop: isMobile ? "-110px" : 0, position: "relative", zIndex: 2 }}>
               <h1 style={{ fontSize: "clamp(1.8rem, 5vw, 3rem)", fontWeight: 700, letterSpacing: "-0.02em", fontFamily: "'Playfair Display', serif", textShadow: isMobile ? "0 2px 12px rgba(0,0,0,0.85), 0 1px 4px rgba(0,0,0,0.95)" : "none" }}>
                 Constanza Kostyushko
               </h1>
@@ -756,7 +757,7 @@
               <Divider />
 
               {/* ── ABOUT ── */}
-              <section id="about" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr auto", gap: isMobile ? "1.5rem" : "3rem", alignItems: "center" }}>
+              <section id="about" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr auto", gap: isMobile ? 0 : "3rem", alignItems: "center" }}>
                 <Reveal from="left">
                   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     <h2 style={{ fontSize: "clamp(1.6rem, 4vw, 2.2rem)", fontWeight: 700, fontFamily: "'Playfair Display', serif" }}>
@@ -790,6 +791,7 @@
                   </div>
                 </Reveal>
 
+                {isMobile && <Divider />}
                 <Reveal from="right" delay={0.15}>
                   <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start" }}>
                   <div style={{ position: "relative" }}>
@@ -814,7 +816,7 @@
               {/* ── SKILLS ── */}
               <section id="skills">
                 <Reveal>
-                  <h2 style={{ fontSize: "1.5rem", fontWeight: 600, fontFamily: "'Playfair Display', serif", marginBottom: "2rem", textAlign: "center" }}>
+                  <h2 style={{ fontSize: "1.5rem", fontWeight: 600, fontFamily: "'Playfair Display', serif", marginBottom: "2rem", textAlign: "center", paddingTop: isMobile ? "0.75rem" : 0 }}>
                     {T.skills.heading}
                   </h2>
                 </Reveal>
@@ -826,9 +828,9 @@
               <Divider />
 
               {/* ── PROJECTS ── */}
-              <section id="projects">
+              <section id="projects" style={{ marginBottom: isMobile ? "1.25rem" : 0 }}>
                 <Reveal>
-                  <h2 style={{ fontSize: "1.5rem", fontWeight: 600, fontFamily: "'Playfair Display', serif", marginBottom: "2rem", textAlign: "center" }}>
+                  <h2 style={{ fontSize: "1.5rem", fontWeight: 600, fontFamily: "'Playfair Display', serif", marginBottom: "2rem", textAlign: "center", paddingTop: isMobile ? "0.75rem" : 0 }}>
                     {T.projects.heading}
                   </h2>
                 </Reveal>
