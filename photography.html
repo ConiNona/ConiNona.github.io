@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photography · Constanza Kostyushko</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@400;700&family=Anton&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #1f1014;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: #e8d8c8;
+      overflow-x: hidden;
+    }
+    ::selection { background: #d97c2b88; color: #fdf3e0; }
+    ::-webkit-scrollbar { width: 7px; }
+    ::-webkit-scrollbar-track { background: #1f1014; }
+    ::-webkit-scrollbar-thumb { background: #6b3a20; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #d97c2b; }
+
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9000;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      opacity: 0.12; mix-blend-mode: overlay;
+    }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes drawLine { from { stroke-dashoffset: 1500; } to { stroke-dashoffset: 0; } }
+    @keyframes float { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-6px)} }
+
+    .serif    { font-family: 'Cormorant Garamond', serif; }
+    .display  { font-family: 'Playfair Display', serif; }
+    .hand     { font-family: 'Caveat', cursive; }
+    .anton    { font-family: 'Anton', sans-serif; }
+
+    /* anti theft helpers */
+    .protected { -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
+    .protected img { -webkit-user-select: none; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+    .protected::after {
+      content: ""; position: absolute; inset: 0; background: transparent;
+      cursor: default; z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useContext, createContext } = React;
+
+    const C = {
+      bg:        "#1f1014",
+      bgSoft:    "#2a1820",
+      bgDeep:    "#0f0608",
+      cream:     "#e8d8c8",
+      creamDim:  "#a89685",
+      mute:      "#6b5a4c",
+      orange:    "#f0a020",
+      orangeDeep:"#a85a1a",
+      gold:      "#d4a548",
+      red:       "#8a2a2a",
+      line:      "#3a2520",
+    };
+
+    // Order is grouped thematically, not by file number. Each row sums to 12 columns. V = vertical (3/4), H = horizontal (4/3).
+    const PHOTOS = [
+      // Row 1: solitary figure, interior light
+      { src: "photo-tree.jpg",        en: "Forest",                es: "Bosque",                    span: 4, ratio: "3 / 4" },
+      { src: "photo-shutters.jpg",    en: "Through the shutters",  es: "A través de las persianas", span: 8, ratio: "4 / 3" },
+      // Row 2: urban
+      { src: "photo-skyline.jpg",     en: "Skyline",               es: "Skyline",                   span: 4, ratio: "3 / 4" },
+      { src: "photo-flags.jpg",       en: "Flags",                 es: "Banderas",                  span: 8, ratio: "4 / 3" },
+      // Row 3: sea
+      { src: "photo-coast.jpg",       en: "Coast, from above",     es: "Costa, desde arriba",       span: 4, ratio: "3 / 4" },
+      { src: "photo-beach.jpg",       en: "Beach, from far",       es: "Playa, desde lejos",        span: 8, ratio: "4 / 3" },
+      // Row 4: botanical pair
+      { src: "photo-wildflowers.jpg", en: "Wildflowers",           es: "Flores silvestres",         span: 6, ratio: "3 / 4" },
+      { src: "photo-petunias.jpg",    en: "Petunias",              es: "Petunias",                  span: 6, ratio: "3 / 4" },
+      // Row 5: warm light
+      { src: "photo-garden.jpg",      en: "Garden light",          es: "Luz de jardín",             span: 4, ratio: "3 / 4" },
+      { src: "photo-shower.jpg",      en: "Shower light",          es: "Luz de la ducha",           span: 8, ratio: "4 / 3" },
+      // Row 6: three close-ups
+      { src: "photo-amaryllis.jpg",   en: "Amaryllis",             es: "Amarilis",                  span: 4, ratio: "3 / 4" },
+      { src: "photo-hibiscus.jpg",    en: "Hibiscus",              es: "Hibisco",                   span: 4, ratio: "3 / 4" },
+      { src: "pavlova.jpg",           en: "Pavlova",               es: "Pavlova",                   span: 4, ratio: "3 / 4" },
+      // Row 7: flora and fauna
+      { src: "photo-roses.jpg",       en: "Roses",                 es: "Rosas",                     span: 8, ratio: "4 / 3" },
+      { src: "photo-frogs.jpg",       en: "Frogs",                 es: "Ranas",                     span: 4, ratio: "3 / 4" },
+      // Row 8: texture macros
+      { src: "photo-lava.jpg",        en: "Lava",                  es: "Lava",                      span: 8, ratio: "4 / 3" },
+      { src: "photo-volcanic.jpg",    en: "Volcanic",              es: "Volcánico",                 span: 4, ratio: "3 / 4" },
+      // Row 9: small creatures
+      { src: "photo-snail.jpg",       en: "Snail",                 es: "Caracol",                   span: 6, ratio: "3 / 4" },
+      { src: "photo-limpets.jpg",     en: "Limpets",               es: "Lapas",                     span: 6, ratio: "3 / 4" },
+    ];
+
+    const T = {
+      en: {
+        nav: { back: "← back to art portfolio", proj: "photography." },
+        hero: {
+          tagline: "the camera roll",
+          title: "nature, architecture, flowers, and the occasional person.",
+          subtitle: "Photos taken with what I have on hand: my phone, and a Canon PowerShot SX210 IS.",
+        },
+        intro: {
+          h: "about these images",
+          body: "These are not professional images. I am drawn to the same things I draw, light through something, edges of things, and small things that turned out to be quietly interesting. Please do not reuse the images without permission.",
+        },
+        footer: { back: "← back to the rest of the work", credit: "© Constanza Kostyushko · please do not download or reuse without permission" },
+      },
+      es: {
+        nav: { back: "← volver al portafolio artístico", proj: "fotografía." },
+        hero: {
+          tagline: "el carrete",
+          title: "naturaleza, arquitectura, flores, y de vez en cuando una persona.",
+          subtitle: "Fotos sacadas con lo que tengo a mano: mi teléfono, y una Canon PowerShot SX210 IS.",
+        },
+        intro: {
+          h: "sobre estas imágenes",
+          body: "Estas no son imágenes profesionales. Me atraen las mismas cosas que dibujo, la luz pasando a través de algo, los bordes de las cosas, y cosas chiquitas que terminaron siendo silenciosamente interesantes. Por favor no reutilizar las imágenes sin permiso.",
+        },
+        footer: { back: "← volver al resto del trabajo", credit: "© Constanza Kostyushko · por favor no descargar ni reusar sin permiso" },
+      },
+    };
+
+    function useInView(threshold = 0.05) {
+      const ref = useRef(null);
+      const [inView, setInView] = useState(false);
+      useEffect(() => {
+        const el = ref.current; if (!el) return;
+        const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } }, { threshold });
+        obs.observe(el);
+        return () => obs.disconnect();
+      }, [threshold]);
+      return [ref, inView];
+    }
+    function Reveal({ children, delay = 0, from = "bottom" }) {
+      const [ref, inView] = useInView();
+      const tf = { bottom: "translateY(24px)", left: "translateX(-24px)", right: "translateX(24px)", scale: "scale(0.95)" };
+      return (
+        <div ref={ref} style={{
+          opacity: inView ? 1 : 0,
+          transform: inView ? "none" : tf[from],
+          transition: `opacity 0.8s cubic-bezier(.22,1,.36,1) ${delay}s, transform 0.8s cubic-bezier(.22,1,.36,1) ${delay}s`,
+        }}>{children}</div>
+      );
+    }
+
+    /* ─── NAV ─── */
+    function Nav({ lang, setLang, t }) {
+      const [scrolled, setScrolled] = useState(false);
+      useEffect(() => {
+        const h = () => setScrolled(window.scrollY > 40);
+        window.addEventListener("scroll", h);
+        return () => window.removeEventListener("scroll", h);
+      }, []);
+      return (
+        <nav style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          padding: "0 1.5rem", height: 56,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: scrolled ? "rgba(31,16,20,0.94)" : "transparent",
+          borderBottom: scrolled ? `1px solid ${C.line}` : "1px solid transparent",
+          backdropFilter: scrolled ? "blur(10px)" : "none",
+          transition: "background 0.3s, border-color 0.3s",
+        }}>
+          <a href="art-portfolio.html#photo" className="hand" style={{
+            color: C.cream, fontSize: 17, textDecoration: "none", letterSpacing: "0.02em",
+            transition: "color 0.2s, transform 0.2s", display: "inline-block",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.orange; e.currentTarget.style.transform = "translateX(-2px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = C.cream; e.currentTarget.style.transform = "none"; }}
+          >{t.nav.back}</a>
+
+          <span className="display" style={{
+            fontSize: 22, fontStyle: "italic", color: C.cream, letterSpacing: "0.04em",
+          }}>{t.nav.proj}<span style={{ color: C.orange }}>.</span></span>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {["en","es"].map(code => {
+              const active = lang === code;
+              return (
+                <button key={code} onClick={() => setLang(code)} style={{
+                  background: "none", border: "none", cursor: active ? "default" : "pointer",
+                  fontSize: 12, fontWeight: active ? 700 : 400,
+                  color: active ? C.orange : C.creamDim, letterSpacing: "0.08em",
+                  padding: "2px 6px",
+                  borderBottom: active ? `1px solid ${C.orange}` : "1px solid transparent",
+                  fontFamily: "'Cormorant Garamond', serif",
+                  transition: "color 0.2s, border-color 0.2s",
+                }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.color = C.cream; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.color = C.creamDim; }}
+                >{code.toUpperCase()}</button>
+              );
+            })}
+          </div>
+        </nav>
+      );
+    }
+
+    /* ─── HERO ─── */
+    function Hero({ t }) {
+      return (
+        <header style={{
+          position: "relative", padding: "140px 1.5rem 4rem",
+          maxWidth: 1100, margin: "0 auto",
+        }}>
+          <Reveal>
+            <p className="hand" style={{
+              fontSize: "1.7rem", color: C.orange, marginBottom: 14,
+              letterSpacing: "0.02em",
+            }}>✶ {t.hero.tagline}</p>
+            <h1 className="display" style={{
+              fontSize: "clamp(2.4rem, 6vw, 4.4rem)",
+              fontWeight: 700, fontStyle: "italic", lineHeight: 1,
+              color: C.cream, marginBottom: 22,
+            }}>{t.hero.title}</h1>
+            <p className="serif" style={{
+              fontSize: "1.15rem", color: C.creamDim, lineHeight: 1.6,
+              fontStyle: "italic", maxWidth: 620,
+            }}>{t.hero.subtitle}</p>
+          </Reveal>
+        </header>
+      );
+    }
+
+    /* ─── INTRO ─── */
+    function Intro({ t }) {
+      return (
+        <section style={{ padding: "1rem 1.5rem 3rem" }}>
+          <div style={{ maxWidth: 760, margin: "0 auto", borderLeft: "3px solid " + C.orange, paddingLeft: "1.6rem" }}>
+            <Reveal>
+              <p className="hand" style={{ color: C.gold, fontSize: "1.3rem", marginBottom: 10 }}>
+                ✶ {t.intro.h}
+              </p>
+              <p className="serif" style={{
+                fontSize: "1.1rem", color: C.cream, lineHeight: 1.7,
+                fontStyle: "italic",
+              }}>{t.intro.body}</p>
+            </Reveal>
+          </div>
+        </section>
+      );
+    }
+
+    /* ─── PHOTO TILE ─── */
+    function Photo({ photo, lang }) {
+      const [hover, setHover] = useState(false);
+      const [loaded, setLoaded] = useState(false);
+      const [errored, setErrored] = useState(false);
+      const label = photo[lang];
+
+      return (
+        <figure
+          className="protected"
+          onContextMenu={e => e.preventDefault()}
+          onDragStart={e => e.preventDefault()}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          style={{
+            position: "relative", margin: 0,
+            background: C.bgSoft,
+            padding: 14,
+            boxShadow: hover
+              ? "0 22px 42px rgba(0,0,0,0.65), inset 0 1px 2px rgba(255,255,255,0.05)"
+              : "0 12px 24px rgba(0,0,0,0.55), inset 0 1px 2px rgba(255,255,255,0.04)",
+            transition: "transform 0.4s cubic-bezier(.22,1,.36,1), box-shadow 0.4s",
+            transform: hover ? "translateY(-4px)" : "none",
+          }}>
+          {/* picture frame inset */}
+          <div style={{
+            background: C.bgDeep, padding: 8,
+            boxShadow: "inset 0 2px 6px rgba(0,0,0,0.6)",
+            position: "relative",
+          }}>
+            <div style={{
+              aspectRatio: photo.ratio,
+              background: errored
+                ? "linear-gradient(135deg, " + C.bgSoft + " 0%, " + C.bgDeep + " 100%)"
+                : "url(\"" + photo.src + "\") center/cover " + C.bgDeep,
+              position: "relative", overflow: "hidden",
+            }}>
+              {/* hidden img used purely to detect onError, keeps the css bg fallback */}
+              <img src={photo.src} alt=""
+                onLoad={() => setLoaded(true)}
+                onError={() => setErrored(true)}
+                style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}/>
+
+              {errored && (
+                <div style={{
+                  position: "absolute", inset: 0, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  color: C.creamDim, fontSize: 12, fontStyle: "italic",
+                  textAlign: "center", padding: 12,
+                }}>
+                  add <code style={{ background: "rgba(216,124,43,0.18)", padding: "2px 6px" }}>{photo.src}</code>
+                </div>
+              )}
+
+              {/* hover scrim */}
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(0deg, rgba(0,0,0,0.65) 0%, transparent 40%)",
+                opacity: hover ? 1 : 0.65,
+                transition: "opacity 0.3s",
+                pointerEvents: "none",
+              }}/>
+
+              {/* caption */}
+              <figcaption style={{
+                position: "absolute", left: 14, right: 14, bottom: 12,
+                color: C.cream, fontFamily: "'Cormorant Garamond', serif",
+                fontStyle: "italic", fontSize: "1.1rem", letterSpacing: "0.04em",
+                textShadow: "0 2px 10px rgba(0,0,0,0.85)",
+                transform: hover ? "translateY(0)" : "translateY(2px)",
+                transition: "transform 0.3s",
+                zIndex: 3,
+              }}>{label}</figcaption>
+            </div>
+          </div>
+        </figure>
+      );
+    }
+
+    /* ─── GALLERY ─── */
+    function Gallery({ lang, t }) {
+      return (
+        <section style={{ padding: "2rem 1.2rem 5rem" }}>
+          <div style={{ maxWidth: 1500, margin: "0 auto" }}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(12, 1fr)",
+              gap: 24,
+              alignItems: "start",
+            }}>
+              {(() => {
+                // Render with explicit column starts so under-filled rows can be centered.
+                const cells = [];
+                let col = 1;
+                let rowAcc = [];
+                let rowSpanTotal = 0;
+                PHOTOS.forEach((p, i) => {
+                  rowAcc.push({ p, i });
+                  rowSpanTotal += p.span;
+                  const last = i === PHOTOS.length - 1;
+                  if (rowSpanTotal >= 12 || last) {
+                    const slack = 12 - rowSpanTotal;
+                    const offset = slack > 0 ? Math.floor(slack / 2) : 0;
+                    let runCol = 1 + offset;
+                    rowAcc.forEach(({ p: ph, i: idx }) => {
+                      cells.push(
+                        <div key={ph.src} style={{
+                          gridColumn: runCol + " / span " + ph.span,
+                        }}>
+                          <Reveal delay={(idx % 4) * 0.04} from={idx % 2 ? "left" : "right"}>
+                            <Photo photo={ph} lang={lang}/>
+                          </Reveal>
+                        </div>
+                      );
+                      runCol += ph.span;
+                    });
+                    rowAcc = []; rowSpanTotal = 0;
+                  }
+                });
+                return cells;
+              })()}
+            </div>
+
+          </div>
+        </section>
+      );
+    }
+
+    /* ─── FOOTER ─── */
+    function Footer({ t }) {
+      return (
+        <footer style={{
+          padding: "4rem 1.5rem 3rem", textAlign: "center",
+          borderTop: `1px dashed ${C.line}`,
+        }}>
+          <Reveal>
+            <a href="art-portfolio.html#photo" className="hand" style={{
+              display: "inline-block", fontSize: "1.5rem", color: C.orange,
+              textDecoration: "none", padding: "12px 24px",
+              borderBottom: `2px solid ${C.orange}`,
+              transition: "color 0.2s, transform 0.2s, border-color 0.2s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = C.cream; e.currentTarget.style.transform = "translateX(-3px)"; e.currentTarget.style.borderColor = C.cream; }}
+              onMouseLeave={e => { e.currentTarget.style.color = C.orange; e.currentTarget.style.transform = "none"; e.currentTarget.style.borderColor = C.orange; }}
+            >{t.footer.back}</a>
+            <p className="serif" style={{
+              marginTop: "2rem", fontSize: 12, color: C.mute, fontStyle: "italic",
+              letterSpacing: "0.04em", maxWidth: 540, marginLeft: "auto", marginRight: "auto",
+            }}>{t.footer.credit}</p>
+          </Reveal>
+        </footer>
+      );
+    }
+
+    /* ─── APP ─── */
+    function App() {
+      const [lang, setLang] = useState(() => localStorage.getItem('art-portfolio-lang') || 'en');
+      useEffect(() => { localStorage.setItem('art-portfolio-lang', lang); }, [lang]);
+
+      // global hardening: block context menu + drag on the whole gallery
+      useEffect(() => {
+        const blockOnImage = (e) => {
+          if (e.target && (e.target.tagName === 'IMG' || (e.target.closest && e.target.closest('.protected')))) {
+            e.preventDefault();
+          }
+        };
+        document.addEventListener('contextmenu', blockOnImage);
+        document.addEventListener('dragstart', blockOnImage);
+        return () => {
+          document.removeEventListener('contextmenu', blockOnImage);
+          document.removeEventListener('dragstart', blockOnImage);
+        };
+      }, []);
+
+      const t = T[lang];
+      return (
+        <>
+          <Nav lang={lang} setLang={setLang} t={t}/>
+          <Hero t={t}/>
+          <Intro t={t}/>
+          <Gallery lang={lang} t={t}/>
+          <Footer t={t}/>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
