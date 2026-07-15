@@ -250,6 +250,17 @@
       return display;
     }
 
+    /* ─── MOBILE HOOK ────────────────────────── */
+    function useIsMobile() {
+      const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 700);
+      useEffect(() => {
+        const h = () => setIsMobile(window.innerWidth <= 700);
+        window.addEventListener('resize', h);
+        return () => window.removeEventListener('resize', h);
+      }, []);
+      return isMobile;
+    }
+
     /* ─── REVEAL ─────────────────────────────── */
     function Reveal({ children, delay = 0, from = "bottom", style = {} }) {
       const [ref, inView] = useInView();
@@ -365,6 +376,7 @@
     /* ─── PROJECT CARD ───────────────────────── */
     function ProjectCard({ index }) {
       const { T } = useContext(LangCtx);
+      const isMobile = useIsMobile();
       const [hover, setHover] = useState(false);
       const [imgErr, setImgErr] = useState(false);
       const isEven = index % 2 === 0;
@@ -378,7 +390,7 @@
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
             style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0,
+              display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 0,
               borderRadius: 18, overflow: "hidden",
               background: C.card,
               border: `1px solid ${hover ? A.accentDark : C.border}`,
@@ -388,7 +400,7 @@
             }}
           >
             {/* Text side */}
-            <div style={{ padding: "2.25rem 2.5rem", display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, order: isEven ? 0 : 1 }}>
+            <div style={{ padding: isMobile ? "1.5rem" : "2.25rem 2.5rem", display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, order: isMobile ? 0 : (isEven ? 0 : 1) }}>
               <h3 style={{ fontSize: "1.25rem", fontWeight: 600, color: C.text, lineHeight: 1.3 }}>{proj.title}</h3>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {proj.tags.map((tag, i) => (
@@ -420,7 +432,7 @@
             <a
               href={proj.summary}
               onClick={() => sessionStorage.setItem('portfolio-scroll', String(window.scrollY))}
-              style={{ order: isEven ? 1 : 0, position: "relative", overflow: "hidden", minHeight: 240, background: proj.imgBg, display: "block", textDecoration: "none" }}
+              style={{ order: isMobile ? 1 : (isEven ? 1 : 0), position: "relative", overflow: "hidden", minHeight: isMobile ? 200 : 240, background: proj.imgBg, display: "block", textDecoration: "none" }}
             >
               {!imgErr ? (
                 <img
@@ -526,10 +538,12 @@
 
     function Nav() {
       const { lang, setLang, T } = useContext(LangCtx);
+      const isMobile = useIsMobile();
       const [scrolled, setScrolled] = useState(false);
       const [dropOpen, setDropOpen] = useState(false);
       const [hoveredIdx, setHoveredIdx] = useState(null);
       const [dropRect, setDropRect] = useState(null);
+      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const projRef = useRef(null);
       const closeTimer = useRef(null);
 
@@ -611,33 +625,73 @@
         document.body
       );
 
+      const mobileMenu = isMobile && mobileMenuOpen && ReactDOM.createPortal(
+        <div style={{
+          position: "fixed", top: 56, left: 0, right: 0, bottom: 0, zIndex: 98,
+          background: `${C.bg}f4`,
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          display: "flex", flexDirection: "column",
+          padding: "0.5rem 1.5rem 2rem",
+        }}>
+          {[
+            { href: "#about",    label: T.nav.about },
+            { href: "#skills",   label: T.nav.skills },
+            { href: "#projects", label: T.nav.projects },
+            { href: "#contact",  label: T.nav.contact },
+          ].map(({ href, label }) => (
+            <a key={href} href={href}
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: C.textMuted, fontSize: 16, textDecoration: "none", padding: "18px 0", borderBottom: `1px solid ${C.border}`, letterSpacing: "0.06em", display: "block" }}
+            >{label}</a>
+          ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 20 }}>
+            <LangBtn code="en" /><span style={{ color: C.textDim, fontSize: 11 }}>|</span><LangBtn code="es" />
+          </div>
+        </div>,
+        document.body
+      );
+
       return (
         <>
-          <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: "0 2rem", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: scrolled ? `${C.bg}ee` : "transparent", borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent", backdropFilter: scrolled ? "blur(12px)" : "none", transition: "background 0.3s, border-color 0.3s" }}>
-            <a href="#" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ fontSize: 24, fontWeight: 600, letterSpacing: "0.1em", color: C.text, fontFamily: "'Playfair Display', serif", textDecoration: 'none', cursor: 'pointer' }}>CK<span style={{ display: "inline-block", width: 4, height: 4, background: C.accent, marginLeft: 2, verticalAlign: "baseline" }} /></a>
-            <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
-              {navLink("#about", T.nav.about)}
-              {navLink("#skills", T.nav.skills)}
-
-              {/* Projects nav item — dropdown rendered via portal */}
-              <div
-                ref={projRef}
-                style={{ position: "relative" }}
-                onMouseEnter={openDrop}
-                onMouseLeave={closeDrop}
+          <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: isMobile ? "0 1rem" : "0 2rem", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: scrolled ? `${C.bg}ee` : "transparent", borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent", backdropFilter: scrolled ? "blur(12px)" : "none", transition: "background 0.3s, border-color 0.3s" }}>
+            <a href="#" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }} style={{ fontSize: 24, fontWeight: 600, letterSpacing: "0.1em", color: C.text, fontFamily: "'Playfair Display', serif", textDecoration: 'none', cursor: 'pointer' }}>CK<span style={{ display: "inline-block", width: 4, height: 4, background: C.accent, marginLeft: 2, verticalAlign: "baseline" }} /></a>
+            {isMobile ? (
+              <button
+                onClick={() => setMobileMenuOpen(o => !o)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "8px 4px", display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-end" }}
+                aria-label="Toggle menu"
               >
-                <a href="#projects" style={{ color: dropOpen ? C.accent : C.textMuted, fontSize: 13, textDecoration: "none", transition: "color 0.2s", letterSpacing: "0.05em" }}>
-                  {T.nav.projects}
-                </a>
-              </div>
+                <span style={{ display: "block", width: 22, height: 2, background: mobileMenuOpen ? C.accent : C.textMuted, borderRadius: 2, transition: "all 0.25s ease", transform: mobileMenuOpen ? "translateY(7px) rotate(45deg)" : "none" }}/>
+                <span style={{ display: "block", width: 22, height: 2, background: mobileMenuOpen ? C.accent : C.textMuted, borderRadius: 2, transition: "all 0.25s ease", opacity: mobileMenuOpen ? 0 : 1 }}/>
+                <span style={{ display: "block", width: 22, height: 2, background: mobileMenuOpen ? C.accent : C.textMuted, borderRadius: 2, transition: "all 0.25s ease", transform: mobileMenuOpen ? "translateY(-7px) rotate(-45deg)" : "none" }}/>
+              </button>
+            ) : (
+              <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
+                {navLink("#about", T.nav.about)}
+                {navLink("#skills", T.nav.skills)}
 
-              {navLink("#contact", T.nav.contact)}
-              <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}>
-                <LangBtn code="en" /><span style={{ color: C.textDim, fontSize: 11 }}>|</span><LangBtn code="es" />
+                {/* Projects nav item — dropdown rendered via portal */}
+                <div
+                  ref={projRef}
+                  style={{ position: "relative" }}
+                  onMouseEnter={openDrop}
+                  onMouseLeave={closeDrop}
+                >
+                  <a href="#projects" style={{ color: dropOpen ? C.accent : C.textMuted, fontSize: 13, textDecoration: "none", transition: "color 0.2s", letterSpacing: "0.05em" }}>
+                    {T.nav.projects}
+                  </a>
+                </div>
+
+                {navLink("#contact", T.nav.contact)}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}>
+                  <LangBtn code="en" /><span style={{ color: C.textDim, fontSize: 11 }}>|</span><LangBtn code="es" />
+                </div>
               </div>
-            </div>
+            )}
           </nav>
-          {dropdownPortal}
+          {!isMobile && dropdownPortal}
+          {mobileMenu}
         </>
       );
     }
@@ -649,6 +703,7 @@
 
     /* ─── MAIN APP ───────────────────────────── */
     function Portfolio() {
+      const isMobile = useIsMobile();
       const [lang, setLang] = useState(() => localStorage.getItem('portfolio-lang') || 'en');
       useEffect(() => { localStorage.setItem('portfolio-lang', lang); }, [lang]);
       useEffect(() => {
@@ -697,7 +752,7 @@
               <Divider />
 
               {/* ── ABOUT ── */}
-              <section id="about" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "center" }}>
+              <section id="about" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr auto", gap: isMobile ? "1.5rem" : "3rem", alignItems: "center" }}>
                 <Reveal from="left">
                   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     <h2 style={{ fontSize: "clamp(1.6rem, 4vw, 2.2rem)", fontWeight: 700, fontFamily: "'Playfair Display', serif" }}>
@@ -732,9 +787,10 @@
                 </Reveal>
 
                 <Reveal from="right" delay={0.15}>
+                  <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start" }}>
                   <div style={{ position: "relative" }}>
                     <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: `1px solid ${C.accentDark}`, animation: "float 5s ease-in-out infinite" }}/>
-                    <div style={{ width: 220, height: 220, borderRadius: "50%", overflow: "hidden", border: `3px solid ${C.accentDark}`, background: C.surface, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: isMobile ? 160 : 220, height: isMobile ? 160 : 220, borderRadius: "50%", overflow: "hidden", border: `3px solid ${C.accentDark}`, background: C.surface, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       {!photoErr ? (
                         <img src="coni.jpg" alt="Constanza Kostyushko" onError={() => setPhotoErr(true)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}/>
                       ) : (
@@ -744,6 +800,7 @@
                         </div>
                       )}
                     </div>
+                  </div>
                   </div>
                 </Reveal>
               </section>
@@ -757,7 +814,7 @@
                     {T.skills.heading}
                   </h2>
                 </Reveal>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20 }}>
                   {T.skills.groups.map((_, i) => <SkillGroup key={i} groupIndex={i} delay={i * 0.1} />)}
                 </div>
               </section>
