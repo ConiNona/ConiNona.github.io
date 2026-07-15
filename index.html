@@ -35,6 +35,7 @@
       100% { background-position: 0% 50%; }
     }
     @keyframes bounceDown { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+    @keyframes pinkGlow { 0%,100%{box-shadow:0 0 8px #c4728a44,0 0 18px #c4728a1a} 50%{box-shadow:0 0 22px #c4728a99,0 0 44px #c4728a44} }
     section[id] { scroll-margin-top: 110px; }
   </style>
 </head>
@@ -278,9 +279,9 @@
     }
 
     /* ─── HEADER ─────────────────────────────── */
-    function Header() {
+    function Header({ isMobile = false }) {
       return (
-        <div style={{ position: "relative", height: 300, overflow: "hidden" }}>
+        <div style={{ position: "relative", height: isMobile ? 160 : 300, overflow: "hidden" }}>
           {/* Animated gradient background */}
           <div style={{
             position: "absolute", inset: 0,
@@ -310,6 +311,7 @@
     /* ─── SKILL CARD ─────────────────────────── */
     function SkillGroup({ groupIndex, delay }) {
       const { T } = useContext(LangCtx);
+      const isMobile = useIsMobile();
       const { label, years } = T.skills.groups[groupIndex];
       const icons = SKILL_ICON_GROUPS[groupIndex];
 
@@ -317,8 +319,8 @@
         <Reveal delay={delay}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: "1.75rem 2rem", display: "flex", flexDirection: "column", gap: 20, alignItems: "center" }}>
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 13, color: C.textMuted, marginBottom: 4 }}><span style={{ color: C.accent }}>★</span> {label}</p>
-              <p style={{ fontSize: 13, color: C.textDim }}>{years}</p>
+              <p style={{ fontSize: isMobile ? 15 : 13, color: C.textMuted, marginBottom: 4 }}><span style={{ color: C.accent }}>★</span> {label}</p>
+              <p style={{ fontSize: isMobile ? 13 : 12, color: C.textDim }}>{years}</p>
             </div>
             <div style={{ display: "flex", gap: 36, alignItems: "center", justifyContent: "center" }}>
               {icons.map((icon, i) => {
@@ -345,7 +347,8 @@
                       display: "flex", alignItems: "center", justifyContent: "center",
                       overflow: "hidden",
                       transition: "border-color 0.25s, box-shadow 0.25s",
-                      boxShadow: hover ? `0 0 28px ${C.accentGlow}` : "none",
+                      animation: isMobile ? "pinkGlow 2.5s ease-in-out infinite" : undefined,
+                      boxShadow: isMobile ? undefined : (hover ? `0 0 28px ${C.accentGlow}` : "none"),
                     }}>
                       {icon.framer ? (
                         <svg viewBox="9 7 14 20" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
@@ -396,7 +399,7 @@
               border: `1px solid ${hover ? A.accentDark : C.border}`,
               transition: "border-color 0.35s, transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s",
               transform: hover ? "translateY(-10px) scale(1.012)" : "none",
-              boxShadow: hover ? `0 24px 60px ${A.accentGlow}, 0 8px 24px rgba(0,0,0,0.5)` : "0 2px 8px rgba(0,0,0,0.2)",
+              boxShadow: isMobile ? `0 0 0 1px ${A.accentDark}50, 0 0 28px ${A.accentGlow}, 0 4px 12px rgba(0,0,0,0.3)` : (hover ? `0 24px 60px ${A.accentGlow}, 0 8px 24px rgba(0,0,0,0.5)` : "0 2px 8px rgba(0,0,0,0.2)"),
             }}
           >
             {/* Text side */}
@@ -447,7 +450,7 @@
                 </div>
               )}
               <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${A.accentDark}22, transparent)`, opacity: hover ? 1 : 0, transition: "opacity 0.35s" }}/>
-              <div style={{ position: "absolute", bottom: 12, right: 14, fontSize: 11, letterSpacing: "0.07em", fontWeight: 500, color: "rgba(255,255,255,0.75)", textShadow: "0 1px 6px rgba(0,0,0,0.7)", opacity: hover ? 1 : 0, transition: "opacity 0.3s" }}>
+              <div style={{ position: "absolute", bottom: 12, right: 14, fontSize: 11, letterSpacing: "0.07em", fontWeight: 500, color: "rgba(255,255,255,0.75)", textShadow: "0 1px 6px rgba(0,0,0,0.7)", opacity: (hover || isMobile) ? 1 : 0, transition: "opacity 0.3s" }}>
                 View →
               </div>
             </a>
@@ -698,7 +701,8 @@
 
     /* ─── DIVIDER ────────────────────────────── */
     function Divider() {
-      return <div style={{ width: "100%", height: 1, background: `linear-gradient(90deg, transparent, ${C.border}, transparent)`, margin: "3.5rem 0" }}/>;
+      const isMobile = useIsMobile();
+      return <div style={{ width: "100%", height: 1, background: `linear-gradient(90deg, transparent, ${C.border}, transparent)`, margin: isMobile ? "1.25rem 0" : "3.5rem 0" }}/>;
     }
 
     /* ─── MAIN APP ───────────────────────────── */
@@ -735,15 +739,15 @@
             <CursorGlow />
             <ScrollHint />
             <Nav />
-            <Header />
+            <Header isMobile={isMobile} />
 
             {/* ── TITLE BLOCK ── */}
-            <div style={{ textAlign: "center", padding: "0 1rem 1.5rem", animation: "fadeUp 0.8s ease both" }}>
-              <h1 style={{ fontSize: "clamp(1.8rem, 5vw, 3rem)", fontWeight: 700, letterSpacing: "-0.02em", fontFamily: "'Playfair Display', serif" }}>
+            <div style={{ textAlign: "center", padding: isMobile ? "0 1rem 0.5rem" : "0 1rem 1.5rem", animation: "fadeUp 0.8s ease both", marginTop: isMobile ? "-70px" : 0, position: "relative", zIndex: 2 }}>
+              <h1 style={{ fontSize: "clamp(1.8rem, 5vw, 3rem)", fontWeight: 700, letterSpacing: "-0.02em", fontFamily: "'Playfair Display', serif", textShadow: isMobile ? "0 2px 12px rgba(0,0,0,0.85), 0 1px 4px rgba(0,0,0,0.95)" : "none" }}>
                 Constanza Kostyushko
               </h1>
               <div style={{ marginTop: "0.9rem", minHeight: "1.6em", display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
-                <span style={{ color: C.accent, fontSize: "clamp(0.9rem, 2.5vw, 1.1rem)", fontWeight: 400 }}>{typed}</span>
+                <span style={{ color: C.accent, fontSize: "clamp(0.9rem, 2.5vw, 1.1rem)", fontWeight: 400, textShadow: isMobile ? "0 1px 8px rgba(0,0,0,0.8)" : "none" }}>{typed}</span>
                 <span style={{ color: C.accent, animation: "blink 1s step-end infinite", fontSize: "1.1rem" }}>|</span>
               </div>
             </div>
@@ -790,7 +794,7 @@
                   <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start" }}>
                   <div style={{ position: "relative" }}>
                     <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: `1px solid ${C.accentDark}`, animation: "float 5s ease-in-out infinite" }}/>
-                    <div style={{ width: isMobile ? 160 : 220, height: isMobile ? 160 : 220, borderRadius: "50%", overflow: "hidden", border: `3px solid ${C.accentDark}`, background: C.surface, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: isMobile ? 190 : 220, height: isMobile ? 190 : 220, borderRadius: "50%", overflow: "hidden", border: `3px solid ${C.accentDark}`, background: C.surface, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       {!photoErr ? (
                         <img src="coni.jpg" alt="Constanza Kostyushko" onError={() => setPhotoErr(true)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}/>
                       ) : (
@@ -859,7 +863,7 @@
                         </a>
                       ))}
                     </div>
-                    <div style={{ marginTop: "5rem", paddingTop: "2rem", borderTop: `1px solid ${C.border}` }}>
+                    <div style={{ marginTop: isMobile ? "2rem" : "5rem", paddingTop: "2rem", borderTop: `1px solid ${C.border}` }}>
                       <p style={{ fontSize: 12, color: C.textMuted, marginBottom: 10 }}>
                         {lang === 'es' ? 'También visita mi marca personal:' : 'Also visit my personal brand:'}
                       </p>
