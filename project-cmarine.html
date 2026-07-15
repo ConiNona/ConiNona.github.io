@@ -11,6 +11,7 @@
       --accent: #3a8fc7; --accent-light: #6aafd9; --accent-dark: #1e5a8a;
       --bg: #161616; --surface: #1c1c1c; --card: #202020; --border: #2a2a2a;
       --text: #f0f0f0; --muted: #999; --dim: #555;
+      --glow: rgba(58,143,199,0.25);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -32,7 +33,14 @@
     .nav-main { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 2rem; }
     .nav-sub { display: flex; justify-content: flex-end; align-items: center; height: 22px; padding: 0 2rem; }
     .nav-logo { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; letter-spacing: 0.1em; color: var(--text); text-decoration: none; }
+    .logo-dot { display: inline-block; width: 4px; height: 4px; background: var(--accent); margin-left: 2px; vertical-align: baseline; }
     .nav-links { display: flex; gap: 24px; align-items: center; }
+    .hamburger { display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 5px; align-items: flex-end; padding: 8px 4px; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--muted); border-radius: 2px; transition: all 0.25s ease; }
+    .mobile-nav-overlay { display: none; position: fixed; top: 78px; left: 0; right: 0; bottom: 0; z-index: 98; background: rgba(22,22,22,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-direction: column; padding: 0.5rem 1.5rem 2rem; }
+    .mobile-nav-overlay.open { display: flex; }
+    .mobile-nav-link { color: var(--muted); font-size: 16px; text-decoration: none; padding: 18px 0; border-bottom: 1px solid var(--border); letter-spacing: 0.06em; display: block; transition: color 0.2s; }
+    .mobile-nav-link:hover { color: var(--accent); }
     .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; letter-spacing: 0.05em; }
     .nav-link:hover { color: var(--accent); }
     .nav-drop { position: relative; }
@@ -41,8 +49,8 @@
     .nav-drop-inner { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 6px; min-width: 260px; box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3); }
     .nav-drop-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; color: var(--muted); font-size: 13px; text-decoration: none; transition: background 0.15s, color 0.15s; }
     .nav-drop-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; opacity: 0.45; transition: opacity 0.15s; }
-    .nav-back { font-size: 11px; color: var(--dim); text-decoration: none; transition: color 0.2s; letter-spacing: 0.04em; }
-    .nav-back:hover { color: var(--muted); }
+    .nav-back { font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 5px; border: 1px solid var(--glow); background: rgba(58,143,199,0.07); box-shadow: 0 0 8px var(--glow); transition: color 0.2s, box-shadow 0.2s; }
+    .nav-back:hover { color: var(--accent-light); box-shadow: 0 0 16px var(--glow), 0 0 5px var(--glow); }
     .lang-btn { background: none; border: none; cursor: pointer; font-size: 12px; font-family: 'Inter', sans-serif; letter-spacing: 0.08em; padding: 2px 4px; color: var(--dim); border-bottom: 1px solid transparent; transition: color 0.2s, border-color 0.2s; }
     .lang-sep { color: var(--dim); font-size: 11px; }
 
@@ -96,9 +104,10 @@
     @media (max-width: 700px) {
       body { overflow-x: hidden; }
       .nav-links { display: none; }
+      .hamburger { display: flex; }
       .hero { grid-template-columns: 1fr; padding: 96px 1.25rem 2rem; gap: 1.5rem; }
       .content { padding: 0 1.25rem 4rem; }
-      .other-projects { margin-left: 0; margin-right: 0; box-shadow: 0 0 0 1px rgba(58,143,199,0.28), 0 0 32px rgba(58,143,199,0.13); }
+      .other-projects { margin-left: 0; margin-right: 0; box-shadow: 0 0 0 2px rgba(58,143,199,0.45), 0 0 24px rgba(58,143,199,0.32), 0 0 50px rgba(58,143,199,0.15); }
       .project-links-grid { grid-template-columns: 1fr; }
       .mobile-visit { display: inline-flex !important; }
       .content-visit { display: none; }
@@ -109,7 +118,10 @@
 
   <nav>
     <div class="nav-main">
-      <a href="index.html" class="nav-logo">CK</a>
+      <a href="index.html" class="nav-logo">CK<span class="logo-dot"></span></a>
+      <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+        <span id="hb1"></span><span id="hb2"></span><span id="hb3"></span>
+      </button>
       <div class="nav-links">
         <a href="index.html#about" class="nav-link" data-en="About" data-es="Sobre mí">About</a>
         <a href="index.html#skills" class="nav-link" data-en="Skills" data-es="Habilidades">Skills</a>
@@ -150,6 +162,18 @@
       <a href="index.html" class="nav-back" data-en="← Back to portfolio" data-es="← Volver al portafolio">← Back to portfolio</a>
     </div>
   </nav>
+
+  <div class="mobile-nav-overlay" id="mobile-overlay">
+    <a href="index.html#about" class="mobile-nav-link" data-en="About" data-es="Sobre mí">About</a>
+    <a href="index.html#skills" class="mobile-nav-link" data-en="Skills" data-es="Habilidades">Skills</a>
+    <a href="index.html#projects" class="mobile-nav-link" data-en="Projects" data-es="Proyectos">Projects</a>
+    <a href="index.html#contact" class="mobile-nav-link" data-en="Contact" data-es="Contacto">Contact</a>
+    <div style="display:flex;align-items:center;gap:4px;margin-top:20px;">
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+      <span class="lang-sep">|</span>
+      <button class="lang-btn" data-lang="es" onclick="setLang('es')">ES</button>
+    </div>
+  </div>
 
   <section class="hero">
     <div class="hero-text fade-up">
@@ -270,6 +294,27 @@
       }
       window.setLang = apply;
       document.addEventListener('DOMContentLoaded', () => apply(localStorage.getItem(KEY) || 'en'));
+    })();
+
+    // ── Hamburger menu ──────────────────────────────────
+    (function() {
+      const btn = document.getElementById('hamburger-btn');
+      const overlay = document.getElementById('mobile-overlay');
+      const hb1 = document.getElementById('hb1');
+      const hb2 = document.getElementById('hb2');
+      const hb3 = document.getElementById('hb3');
+      let open = false;
+      function toggle() {
+        open = !open;
+        overlay.classList.toggle('open', open);
+        hb1.style.transform = open ? 'translateY(7px) rotate(45deg)' : '';
+        hb2.style.opacity = open ? '0' : '1';
+        hb3.style.transform = open ? 'translateY(-7px) rotate(-45deg)' : '';
+        hb1.style.background = open ? 'var(--accent)' : '';
+        hb3.style.background = open ? 'var(--accent)' : '';
+      }
+      btn.addEventListener('click', toggle);
+      document.querySelectorAll('.mobile-nav-link').forEach(l => l.addEventListener('click', () => { open = true; toggle(); }));
     })();
 
     const bar = document.getElementById('progress-bar');
