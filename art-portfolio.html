@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anza by ck.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Caveat:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #0a0a0a;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: #faf3e0;
+      overflow-x: hidden;
+    }
+    ::selection { background: #ff2d8a; color: #0a0a0a; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #ff2d8a; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #f5e635; }
+
+    /* full-screen film grain overlay */
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 9000;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      opacity: 0.14;
+      mix-blend-mode: overlay;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes float { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
+    @keyframes sway { 0%,100%{transform:rotate(-2deg)} 50%{transform:rotate(2deg)} }
+    @keyframes drift { 0%,100%{transform:translate(0,0)} 50%{transform:translate(14px,-12px)} }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes drawLine { from { stroke-dashoffset: 2000; } to { stroke-dashoffset: 0; } }
+    @keyframes scribbleIn { from { stroke-dashoffset: 1000; opacity: 0; } to { stroke-dashoffset: 0; opacity: 1; } }
+    @keyframes flicker { 0%,100%{opacity:0.85} 48%,52%{opacity:0.55} 50%{opacity:0.25} }
+    @keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes spinReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+    @keyframes spinPlinth { 0%,100%{transform:rotateY(-10deg)} 50%{transform:rotateY(10deg)} }
+    @keyframes filmRoll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes bleed { 0%,100%{transform:scale(1);opacity:0.55} 50%{transform:scale(1.08);opacity:0.75} }
+    @keyframes wobble { 0%,100%{transform:rotate(-1deg)} 50%{transform:rotate(1deg)} }
+    @keyframes pulseSpot { 0%,100%{opacity:0.55} 50%{opacity:0.85} }
+    @keyframes pulseScale { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+    @keyframes hueRotate { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+    @keyframes slideStripeX { from { background-position: 0 0; } to { background-position: 40px 0; } }
+
+    section[id] { scroll-margin-top: 70px; }
+
+    /* On very wide monitors the percentage-based layout sprawls and breaks the
+       hero composition; clamp the visible content width so the design holds
+       past ~1700px while still spanning the full viewport on tablets and laptops. */
+    @media (min-width: 1700px) {
+      body {
+        max-width: 1700px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 0 80px rgba(0,0,0,0.5);
+      }
+    }
+
+    .handwritten { font-family: 'Caveat', cursive; }
+    .display     { font-family: 'Playfair Display', serif; }
+    .marker      { font-family: 'Permanent Marker', cursive; }
+    .anton       { font-family: 'Anton', sans-serif; letter-spacing: 0.01em; }
+    .archivo     { font-family: 'Archivo Black', sans-serif; }
+
+    /* SVG turbulence filter (defined below in body) is referenced by torn pieces, warps edges organically. */
+    .torn-a, .torn-b, .torn-c, .torn-d {
+      filter: url(#paper-rip) drop-shadow(0 1px 0 rgba(120, 95, 55, 0.55));
+    }
+
+    /* Paper depth: thin darker edge along the perimeter. Approximated with a tight inset highlight. */
+    .torn-a::after, .torn-b::after, .torn-c::after, .torn-d::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(120, 90, 50, 0.18), inset 0 0 12px rgba(120, 90, 50, 0.1);
+    }
+
+    /* REAL torn paper masks. Use actual photographs of torn paper as the mask. White paper on the photo = visible, black = hidden. Save your own torn paper photos (or use the references) with these filenames. */
+    .torn-real-1, .torn-real-2, .torn-real-3, .torn-real-4, .torn-real-5, .torn-real-6 {
+      -webkit-mask-size: 100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-mode: luminance;
+      -webkit-mask-position: center;
+      mask-size: 100% 100%;
+      mask-repeat: no-repeat;
+      mask-mode: luminance;
+      mask-position: center;
+      filter: drop-shadow(8px 14px 0 rgba(0,0,0,0.25)) drop-shadow(0 18px 28px rgba(0,0,0,0.4));
+    }
+    /* Each real-torn variant pairs a mask photograph with a polygon fallback so the piece still looks torn before you save the photo file. */
+    .torn-real-1 {
+      -webkit-mask-image: url("torn-paper-1.jpg"); mask-image: url("torn-paper-1.jpg");
+      clip-path: polygon(0% 5%, 4% 1%, 8% 4%, 13% 0%, 17% 3%, 22% 1%, 27% 4%, 32% 0%, 38% 3%, 43% 1%, 49% 4%, 54% 1%, 60% 3%, 65% 0%, 71% 3%, 76% 1%, 82% 4%, 88% 1%, 94% 3%, 100% 0%, 99% 9%, 97% 15%, 100% 22%, 98% 28%, 100% 35%, 97% 42%, 100% 49%, 97% 55%, 99% 62%, 96% 69%, 100% 75%, 98% 82%, 100% 88%, 96% 95%, 100% 100%, 95% 99%, 89% 97%, 83% 99%, 77% 96%, 71% 99%, 65% 97%, 59% 99%, 53% 96%, 47% 99%, 41% 97%, 35% 99%, 29% 96%, 23% 99%, 17% 97%, 11% 99%, 5% 96%, 0% 99%, 2% 92%, 0% 85%, 3% 78%, 1% 72%, 3% 65%, 0% 58%, 3% 51%, 1% 44%, 4% 38%, 0% 31%, 2% 24%, 0% 18%, 3% 12%);
+    }
+    .torn-real-2 {
+      -webkit-mask-image: url("torn-paper-2.jpg"); mask-image: url("torn-paper-2.jpg");
+      clip-path: polygon(0% 3%, 5% 0%, 10% 4%, 16% 1%, 22% 5%, 28% 1%, 34% 4%, 40% 0%, 46% 3%, 53% 1%, 59% 4%, 65% 1%, 71% 4%, 77% 0%, 83% 3%, 89% 1%, 95% 4%, 100% 1%, 97% 8%, 100% 14%, 96% 21%, 99% 28%, 96% 35%, 100% 42%, 97% 49%, 100% 56%, 96% 63%, 100% 70%, 97% 77%, 99% 84%, 96% 91%, 100% 97%, 94% 100%, 88% 97%, 82% 100%, 76% 97%, 70% 100%, 64% 96%, 58% 100%, 52% 97%, 46% 100%, 40% 96%, 34% 100%, 28% 97%, 22% 100%, 16% 96%, 10% 100%, 4% 97%, 0% 100%, 3% 93%, 0% 87%, 3% 80%, 0% 73%, 4% 66%, 1% 59%, 3% 52%, 0% 45%, 3% 38%, 1% 31%, 4% 24%, 0% 17%, 3% 10%);
+    }
+    .torn-real-3 {
+      -webkit-mask-image: url("torn-paper-3.jpg"); mask-image: url("torn-paper-3.jpg");
+      clip-path: polygon(0% 2%, 6% 5%, 12% 1%, 18% 4%, 24% 0%, 30% 3%, 36% 1%, 42% 4%, 48% 0%, 54% 3%, 60% 1%, 66% 4%, 72% 0%, 78% 3%, 84% 1%, 90% 4%, 96% 1%, 100% 4%, 98% 10%, 100% 17%, 97% 23%, 100% 30%, 97% 37%, 99% 44%, 96% 51%, 99% 58%, 97% 65%, 100% 72%, 96% 79%, 100% 86%, 97% 93%, 100% 99%, 95% 97%, 89% 100%, 83% 96%, 77% 100%, 71% 97%, 65% 100%, 59% 96%, 53% 100%, 47% 97%, 41% 100%, 35% 96%, 29% 100%, 23% 96%, 17% 100%, 11% 97%, 5% 100%, 0% 96%, 3% 90%, 0% 83%, 3% 76%, 1% 69%, 4% 62%, 0% 55%, 3% 48%, 1% 41%, 4% 34%, 0% 27%, 2% 20%, 0% 13%, 3% 7%);
+    }
+    .torn-real-4 {
+      -webkit-mask-image: url("torn-paper-4.jpg"); mask-image: url("torn-paper-4.jpg");
+      clip-path: polygon(0% 7%, 5% 2%, 11% 5%, 17% 1%, 23% 4%, 29% 0%, 35% 3%, 41% 1%, 47% 4%, 53% 1%, 59% 4%, 65% 0%, 71% 3%, 77% 1%, 83% 4%, 89% 0%, 95% 3%, 100% 5%, 97% 12%, 100% 19%, 96% 26%, 99% 33%, 96% 40%, 100% 47%, 97% 54%, 100% 61%, 96% 68%, 99% 75%, 97% 82%, 100% 89%, 96% 96%, 94% 99%, 88% 96%, 82% 99%, 76% 96%, 70% 99%, 64% 96%, 58% 99%, 52% 96%, 46% 99%, 40% 96%, 34% 99%, 28% 96%, 22% 99%, 16% 96%, 10% 99%, 4% 96%, 0% 99%, 3% 92%, 0% 85%, 3% 78%, 1% 71%, 4% 64%, 0% 57%, 3% 50%, 1% 43%, 4% 36%, 0% 29%, 2% 22%, 0% 15%);
+    }
+    .torn-real-5 { -webkit-mask-image: url("torn-paper-5.jpg"); mask-image: url("torn-paper-5.jpg"); }
+    .torn-real-6 { -webkit-mask-image: url("torn-paper-6.jpg"); mask-image: url("torn-paper-6.jpg"); }
+
+    /* Newsprint torn strips reuse a mask designed for horizontal strips */
+    .torn-newsprint {
+      -webkit-mask-size: 100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-mode: luminance;
+      mask-size: 100% 100%;
+      mask-repeat: no-repeat;
+      mask-mode: luminance;
+      -webkit-mask-image: url("torn-paper-news.jpg");
+      mask-image: url("torn-paper-news.jpg");
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,0.45));
+    }
+
+    /* Torn paper polygon variants. Use as a class on any element to give it a jagged torn outline. */
+    .torn-a { clip-path: polygon(
+      0% 5%, 4% 1%, 8% 4%, 13% 0%, 17% 3%, 22% 1%, 27% 4%, 32% 0%, 38% 3%, 43% 1%, 49% 4%, 54% 1%, 60% 3%, 65% 0%, 71% 3%, 76% 1%, 82% 4%, 88% 1%, 94% 3%, 100% 0%,
+      99% 9%, 97% 15%, 100% 22%, 98% 28%, 100% 35%, 97% 42%, 100% 49%, 97% 55%, 99% 62%, 96% 69%, 100% 75%, 98% 82%, 100% 88%, 96% 95%, 100% 100%,
+      95% 99%, 89% 97%, 83% 99%, 77% 96%, 71% 99%, 65% 97%, 59% 99%, 53% 96%, 47% 99%, 41% 97%, 35% 99%, 29% 96%, 23% 99%, 17% 97%, 11% 99%, 5% 96%, 0% 99%,
+      2% 92%, 0% 85%, 3% 78%, 1% 72%, 3% 65%, 0% 58%, 3% 51%, 1% 44%, 4% 38%, 0% 31%, 2% 24%, 0% 18%, 3% 12%
+    ); }
+    .torn-b { clip-path: polygon(
+      0% 3%, 5% 0%, 10% 4%, 16% 1%, 22% 5%, 28% 1%, 34% 4%, 40% 0%, 46% 3%, 53% 1%, 59% 4%, 65% 1%, 71% 4%, 77% 0%, 83% 3%, 89% 1%, 95% 4%, 100% 1%,
+      97% 8%, 100% 14%, 96% 21%, 99% 28%, 96% 35%, 100% 42%, 97% 49%, 100% 56%, 96% 63%, 100% 70%, 97% 77%, 99% 84%, 96% 91%, 100% 97%,
+      94% 100%, 88% 97%, 82% 100%, 76% 97%, 70% 100%, 64% 96%, 58% 100%, 52% 97%, 46% 100%, 40% 96%, 34% 100%, 28% 97%, 22% 100%, 16% 96%, 10% 100%, 4% 97%, 0% 100%,
+      3% 93%, 0% 87%, 3% 80%, 0% 73%, 4% 66%, 1% 59%, 3% 52%, 0% 45%, 3% 38%, 1% 31%, 4% 24%, 0% 17%, 3% 10%
+    ); }
+    .torn-c { clip-path: polygon(
+      0% 2%, 6% 5%, 12% 1%, 18% 4%, 24% 0%, 30% 3%, 36% 1%, 42% 4%, 48% 0%, 54% 3%, 60% 1%, 66% 4%, 72% 0%, 78% 3%, 84% 1%, 90% 4%, 96% 1%, 100% 4%,
+      98% 10%, 100% 17%, 97% 23%, 100% 30%, 97% 37%, 99% 44%, 96% 51%, 99% 58%, 97% 65%, 100% 72%, 96% 79%, 100% 86%, 97% 93%, 100% 99%,
+      95% 97%, 89% 100%, 83% 96%, 77% 100%, 71% 97%, 65% 100%, 59% 96%, 53% 100%, 47% 97%, 41% 100%, 35% 96%, 29% 100%, 23% 96%, 17% 100%, 11% 97%, 5% 100%, 0% 96%,
+      3% 90%, 0% 83%, 3% 76%, 1% 69%, 4% 62%, 0% 55%, 3% 48%, 1% 41%, 4% 34%, 0% 27%, 2% 20%, 0% 13%, 3% 7%
+    ); }
+    .torn-d { clip-path: polygon(
+      0% 7%, 5% 2%, 11% 5%, 17% 1%, 23% 4%, 29% 0%, 35% 3%, 41% 1%, 47% 4%, 53% 1%, 59% 4%, 65% 0%, 71% 3%, 77% 1%, 83% 4%, 89% 0%, 95% 3%, 100% 5%,
+      97% 12%, 100% 19%, 96% 26%, 99% 33%, 96% 40%, 100% 47%, 97% 54%, 100% 61%, 96% 68%, 99% 75%, 97% 82%, 100% 89%, 96% 96%,
+      94% 99%, 88% 96%, 82% 99%, 76% 96%, 70% 99%, 64% 96%, 58% 99%, 52% 96%, 46% 99%, 40% 96%, 34% 99%, 28% 96%, 22% 99%, 16% 96%, 10% 99%, 4% 96%, 0% 99%,
+      3% 92%, 0% 85%, 3% 78%, 1% 71%, 4% 64%, 0% 57%, 3% 50%, 1% 43%, 4% 36%, 0% 29%, 2% 22%, 0% 15%
+    ); }
+
+    /* paper grain — apply as a ::after overlay-like via background */
+    .paper-grain {
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E"),
+        linear-gradient(180deg, #fdfbf6 0%, #f6efdd 100%);
+    }
+
+    /* newspaper text pattern overlay */
+    .newsprint {
+      background-image:
+        repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,0.55) 3px 4px, transparent 4px 7px),
+        repeating-linear-gradient(90deg, transparent 0 38px, rgba(255,255,255,0.7) 38px 42px),
+        linear-gradient(180deg, #ddd5c4 0%, #c8c0ad 100%);
+      background-size: auto, auto, auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- SVG filter that warps the edges of torn paper pieces, giving them organic fiber-like tears instead of geometric polygons -->
+  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <defs>
+      <filter id="paper-rip" x="-3%" y="-3%" width="106%" height="106%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="4" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="9"/>
+      </filter>
+      <filter id="paper-rip-soft" x="-3%" y="-3%" width="106%" height="106%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="9" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useContext, createContext } = React;
+
+    /* ─── PALETTE ────────────────────────────── */
+    const P = {
+      pink:        "#ff2d8a",
+      pinkHot:     "#ff5fa8",
+      pinkDeep:    "#c4145e",
+      yellow:      "#f5e635",
+      yellowAcid:  "#e8f23c",
+      yellowDeep:  "#c4a01a",
+      cyan:        "#00b8c4",
+      cyanLight:   "#5dd5de",
+      cyanDeep:    "#007a83",
+      lime:        "#b8e632",
+      limeDeep:    "#7ba01c",
+      magenta:     "#d92b9b",
+      magentaDeep: "#8a1763",
+      orange:      "#ff5a1f",
+      orangeDeep:  "#c43800",
+      black:       "#0a0a0a",
+      ink:         "#1a1a1a",
+      cream:       "#faf3e0",
+      white:       "#fdfbf6",
+      plum:        "#3a1828",
+      plumDeep:    "#1f0a18",
+      teal:        "#0d6e7c",
+      tealDeep:    "#08454e",
+      slate:       "#1a1f2e",
+      slateLight:  "#3a4a60",
+      terra:       "#a8421f",
+      terraDeep:   "#6a2510",
+    };
+
+    /* per-medium tone bundles */
+    const M = {
+      graphite:   { bg: P.slate,    accent: P.cyan,    text: P.cream, hue: P.cyanLight, alt: P.yellowAcid },
+      watercolor: { bg: P.teal,     accent: P.pinkHot, text: P.cream, hue: P.cyanLight, alt: P.yellow },
+      sculpture:  { bg: P.terra,    accent: P.yellow,  text: P.cream, hue: P.yellowAcid, alt: P.cyan },
+      markers:    { bg: P.black,    accent: P.pink,    text: P.yellow, hue: P.lime, alt: P.cyan },
+      collages:   { bg: P.magenta,  accent: P.yellow,  text: P.cream, hue: P.lime, alt: P.cyan },
+      photo:      { bg: P.plum,     accent: "#f0a020", text: P.cream, hue: P.cream, alt: P.yellow },
+      film:       { bg: P.black,    accent: P.orange,  text: P.cream, hue: P.yellowDeep, alt: P.pink },
+      dance:      { bg: "linear-gradient(135deg, #5e1f5e 0%, #d92b9b 40%, #ff5a1f 100%)",
+                    accent: P.yellow, text: P.cream, hue: P.cream, alt: P.cyan },
+    };
+
+    /* ─── TRANSLATIONS ───────────────────────── */
+    const TRANSLATIONS = {
+      en: {
+        nav: {
+          graphite: "Graphite",
+          watercolor: "Watercolor",
+          sculpture: "Sculpture",
+          markers: "Other techniques",
+          collages: "Collages",
+          photo: "Photo",
+          film: "Film",
+          dance: "Dance",
+          pro: "professional portfolio ↗",
+        },
+        hero: {
+          tagline: "the studio",
+          name: "Constanza Kostyushko",
+          title1: "where",
+          title2: "I make",
+          title3: "things",
+          title4: "by",
+          title5: "experimenting",
+          phrases: [
+            "drawings",
+            "watercolors",
+            "sculptures",
+            "collages",
+            "short films",
+          ],
+        },
+        intro: {
+          greeting: "hi, I'm",
+          name: "Constanza",
+          p1: "Outside of the work that lives on my CV, I draw, paint, sculpt, take photos, cut and paste, dance, and make short films. None of it is for a brief, none of it is on a timeline. It is the part of me that needs to keep moving.",
+          p2: "I am drawn to many different styles, and I am still experimenting with everything. Some of it is finished. Most of it is still in progress.",
+          note: "(this is a living scrapbook. it keeps growing.)",
+          since: "making since forever",
+        },
+        graphite: {
+          label: "Graphite",
+          h: "one of my personal favorites.",
+          body: "Of every medium I have tried, graphite is the one that feels most like thinking out loud, the smudges, the slow build of value, and the way a single A3 sheet can swallow a whole night. I like drawing at night, usually on the floor.",
+          featured: {
+            title: "La Aduana",
+            meta: "A3 · graphite · 7.5 hours, two nights",
+            caption: "An old customs building, drawn from a photograph I could not stop coming back to. I spent most of the time on the shading of the building itself. La Aduana is also the title of the original reference photo.",
+            credit: "reference photo · original creator to be credited",
+          },
+          featured2: {
+            title: "The earring",
+            meta: "graphite · portrait study",
+            caption: "A portrait practice that taught me the most about light on skin and how a single highlight in the eye can hold the whole drawing together.",
+          },
+          gallery: ["Torso, anatomy", "Looking down", "Child and puppy", "Reclining figure", "Paper crane"],
+          galleryLabel: "a few favourites",
+          seeAll: "see all drawings →",
+        },
+        watercolor: {
+          label: "Watercolor",
+          h: "still learning what painting wants from me.",
+          body: "Watercolor is the kind of paint I keep coming back to. It is slow, stubborn, and almost impossible to argue with. You wait for it to dry, and you see what it decided to do. I am still experimenting, still finding out what painting can be for me.",
+          gallery: ["Pink lilies", "Magazine cover"],
+          galleryLabel: "wet on dry",
+        },
+        sculpture: {
+          label: "Sculpture",
+          h: "two poems, two figures.",
+          body: "My first sculpture was a poetry to sculpture project I called Gémini. The brief was to turn a poem into a visual piece. I picked two, paired them, and built two figures on one wooden base. Before this I had never sculpted anything, so I studied figure anatomy for weeks, then worked in air dry clay for the first time. The only painted detail is the blood, in red nail polish.",
+          featured: {
+            title: "Two Women · Gémini",
+            meta: "~18 cm · wire skeleton · air dry clay · wooden base · red nail polish",
+            caption: "Two figures, intentionally tender. One crouches, contemplating which version of herself to keep. The other has ripped out her own heart and holds it out as the answer.",
+          },
+          link: "gemini.html",
+          linkLabel: "read the full project →",
+          gallery: ["(next piece)", "(next piece)"],
+          galleryLabel: "what is coming next",
+          plaqueLine1: "C. Kostyushko",
+          plaqueLine2: "2025",
+        },
+        markers: {
+          label: "Other techniques",
+          h: "EXPERIMENTING WITH EVERYTHING ELSE.",
+          body: "When I want the opposite of graphite. Markers, ink, crayon, charcoal, colored pencils, and fineliner. Quick character studies, color experiments, and pages where I just want to play with a different tool.",
+          gallery: ["Charcoal, fabric study", "Colored pencils", "Elements in crayon", "Chinese ink · Cowboy Bebop", "Fineline, body study"],
+          galleryLabel: "from the rest of the folder",
+        },
+        collages: {
+          label: "Collages",
+          h: "mixing and piecing together.",
+          body: "Collage is the medium I go to when I have too many feelings, and not enough words. Magazine clippings, scraps of colored paper, tape, ink, and whatever is on my desk. The point is the friction between the parts.",
+          gallery: ["Untitled #1", "Paper bodies"],
+          galleryLabel: "cut, paste, repeat",
+        },
+        photo: {
+          label: "Photography",
+          h: "anything I see that looks worth keeping.",
+          body: "I shoot nature and architecture, buildings and flowers, sometimes people. Mostly flowers and plants, but really anything I see that turns out to be picture-worthy. I take photos the way I draw, slowly, looking for the thing that is quietly off.",
+          gallery: ["Tree", "Pavlova", "Coast, from above", "Through the shutters", "Volcanic"],
+          galleryLabel: "from the gallery",
+          seeAll: "see all photography →",
+        },
+        film: {
+          label: "Short films",
+          h: "still figuring out my style.",
+          body: "I am still learning what kind of short films I want to make. One was an experiment in mixing techniques, live action with digital animation and traditional hand drawn animation, all stitched together in the same piece. Every once in a while I like to add a scene or two that drops the soundtrack out, so what you hear is just the room. Slow, layered, a little bit unexpected.",
+          inProgress: "in progress · clips coming soon",
+          gallery: ["Untitled #1", "Untitled #2", "Test scene"],
+        },
+        dance: {
+          label: "Dance",
+          h: "the one I do not have a notebook for.",
+          body: "Dance is the part of my practice that cannot be scanned and printed back. It happens, and the only place it leaves a trace is inside me. Nothing beats the feeling I get while I am performing, and that emotion is the part of it I keep returning to between rehearsals.",
+        },
+        footer: {
+          heading: "thanks for wandering through.",
+          sub: "If you would rather see the side of me that develops websites and edits videos, my professional portfolio is right here.",
+          backLink: "to professional portfolio →",
+          credit: "Constanza Kostyushko · the creative behind this scrapbook",
+          copyright: "© 2026 · please do not download or reuse without permission",
+        },
+      },
+
+      es: {
+        nav: {
+          graphite: "Grafito",
+          watercolor: "Acuarela",
+          sculpture: "Escultura",
+          markers: "Otras técnicas",
+          collages: "Collages",
+          photo: "Foto",
+          film: "Cine",
+          dance: "Danza",
+          pro: "portafolio profesional ↗",
+        },
+        hero: {
+          tagline: "el estudio",
+          name: "Constanza Kostyushko",
+          title1: "donde",
+          title2: "hago",
+          title3: "cosas",
+          title4: "por",
+          title5: "experimentar",
+          phrases: [
+            "dibujos",
+            "acuarelas",
+            "esculturas",
+            "collages",
+            "cortos",
+          ],
+        },
+        intro: {
+          greeting: "hola, soy",
+          name: "Constanza",
+          p1: "Fuera del trabajo que aparece en mi CV, dibujo, pinto, esculpo, saco fotos, recorto y pego, bailo, y hago cortos. Nada de esto responde a una consigna ni a un plazo. Es la parte de mí que necesita seguir moviéndose.",
+          p2: "Me atraen muchos estilos distintos, y todavía estoy experimentando con todo. Algunas cosas están terminadas. La mayoría todavía está en proceso.",
+          note: "(este es un cuaderno vivo. sigue creciendo.)",
+          since: "haciendo desde siempre",
+        },
+        graphite: {
+          label: "Grafito",
+          h: "uno de mis favoritos.",
+          body: "De todos los medios que probé, el grafito es el que más se parece a pensar en voz alta, las manchas, la construcción lenta de los valores, y la forma en que una hoja A3 se puede tragar una noche entera. Me gusta dibujar de noche, generalmente en el piso.",
+          featured: {
+            title: "La Aduana",
+            meta: "A3 · grafito · 7,5 horas en dos noches",
+            caption: "Un viejo edificio de aduana, dibujado a partir de una foto a la que no podía dejar de volver. La mayor parte del tiempo la pasé en el sombreado del edificio mismo. La Aduana también es el título de la foto original de referencia.",
+            credit: "foto de referencia · creador original por acreditar",
+          },
+          featured2: {
+            title: "El aro",
+            meta: "grafito · estudio de retrato",
+            caption: "Una práctica de retrato que me enseñó casi todo lo que sé sobre la luz en la piel, y cómo un solo brillo en el ojo puede sostener el dibujo entero.",
+          },
+          gallery: ["Torso, anatomía", "Mirando abajo", "Niña con cachorro", "Figura reclinada", "Grulla de papel"],
+          galleryLabel: "algunos favoritos",
+          seeAll: "ver todos los dibujos →",
+        },
+        watercolor: {
+          label: "Acuarela",
+          h: "todavía aprendiendo qué quiere la pintura de mí.",
+          body: "La acuarela es la pintura a la que sigo queriendo volver. Es lenta, terca, y casi imposible de discutir. Se espera a que se seque, y se ve qué decidió hacer. Sigo experimentando, sigo descubriendo qué puede ser la pintura para mí.",
+          gallery: ["Lirios rosas", "Portada de revista"],
+          galleryLabel: "mojado sobre seco",
+        },
+        sculpture: {
+          label: "Escultura",
+          h: "dos poemas, dos figuras.",
+          body: "Mi primera escultura fue un proyecto de poesía a escultura que llamé Gémini. La consigna era convertir un poema en una pieza visual. Elegí dos, los emparejé, y construí dos figuras sobre una sola base de madera. Antes de esto nunca había esculpido nada, así que estudié anatomía del cuerpo durante semanas, y después trabajé por primera vez con arcilla de secado al aire. El único detalle pintado es la sangre, con esmalte de uñas rojo.",
+          featured: {
+            title: "Dos Mujeres · Gémini",
+            meta: "~18 cm · esqueleto de alambre · arcilla de secado al aire · base de madera · esmalte rojo",
+            caption: "Dos figuras, intencionalmente tiernas. Una se agacha, pensando qué versión de sí misma conservar. La otra se arrancó el corazón y se lo ofrece como respuesta.",
+          },
+          link: "gemini.html",
+          linkLabel: "leer el proyecto completo →",
+          gallery: ["(próxima pieza)", "(próxima pieza)"],
+          galleryLabel: "lo que viene",
+          plaqueLine1: "C. Kostyushko",
+          plaqueLine2: "2025",
+        },
+        markers: {
+          label: "Otras técnicas",
+          h: "EXPERIMENTANDO CON TODO LO DEMÁS.",
+          body: "Cuando quiero lo opuesto al grafito. Marcadores, tinta, crayón, carbón, lápices de color, y fineliner. Estudios de personaje rápidos, experimentos de color, y hojas donde sólo quiero jugar con otra herramienta.",
+          gallery: ["Carbón, estudio de tela", "Lápices de color", "Elementos en crayón", "Tinta china · Cowboy Bebop", "Fineline, estudio de cuerpo"],
+          galleryLabel: "del resto de la carpeta",
+        },
+        collages: {
+          label: "Collages",
+          h: "mezclando y armando pedazos.",
+          body: "El collage es el medio al que voy cuando tengo demasiados sentimientos, y no tengo suficientes palabras. Recortes de revistas, papelitos de colores, cinta, tinta, y lo que haya sobre el escritorio. El punto es la fricción entre las partes.",
+          gallery: ["Sin título #1", "Cuerpos de papel"],
+          galleryLabel: "cortar, pegar, repetir",
+        },
+        photo: {
+          label: "Fotografía",
+          h: "lo que veo y vale la pena guardar.",
+          body: "Saco fotos de la naturaleza y la arquitectura, edificios y flores, a veces gente. Sobre todo flores y plantas, pero también cualquier cosa que veo que se vea linda en una foto. Saco fotos de la misma manera que dibujo, despacio, buscando eso que está silenciosamente fuera de lugar.",
+          gallery: ["Árbol", "Pavlova", "Costa, desde arriba", "A través de las persianas", "Volcánico"],
+          galleryLabel: "de la galería",
+          seeAll: "ver toda la fotografía →",
+        },
+        film: {
+          label: "Cortos",
+          h: "todavía descubriendo mi estilo.",
+          body: "Todavía estoy aprendiendo qué tipo de cortos quiero hacer. Uno fue un experimento mezclando técnicas: imagen real, animación digital, y animación tradicional hecha a mano, todo cosido en la misma pieza. Cada tanto me gusta agregar una escena o dos donde dejo caer la banda sonora, y lo único que se escucha es el cuarto. Lentos, en capas, un poco inesperados.",
+          inProgress: "en proceso · clips próximamente",
+          gallery: ["Sin título #1", "Sin título #2", "Escena de prueba"],
+        },
+        dance: {
+          label: "Danza",
+          h: "la que no tiene cuaderno.",
+          body: "La danza es la parte de mi práctica que no se puede escanear ni imprimir de vuelta. Pasa, y el único lugar donde deja una huella es adentro mío. Nada se compara con lo que siento mientras estoy bailando, y esa emoción es la parte a la que sigo volviendo entre ensayos.",
+        },
+        footer: {
+          heading: "gracias por pasear por acá.",
+          sub: "Si preferís ver el lado mío que desarrolla sitios web y edita videos, mi portafolio profesional está justo acá.",
+          backLink: "al portafolio profesional →",
+          credit: "Constanza Kostyushko · la persona detrás de este cuaderno",
+          copyright: "© 2026 · por favor no descargar ni reutilizar sin permiso",
+        },
+      },
+    };
+
+    const LangCtx = createContext({ lang: "en", setLang: () => {}, T: TRANSLATIONS.en });
+
+    /* ─── HOOKS ──────────────────────────────── */
+    function useInView(threshold = 0.12) {
+      const ref = useRef(null);
+      const [inView, setInView] = useState(false);
+      useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(
+          ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
+          { threshold }
+        );
+        obs.observe(el);
+        return () => obs.disconnect();
+      }, [threshold]);
+      return [ref, inView];
+    }
+
+    function useTypewriter(phrases, resetKey, typingSpeed = 60, deleteSpeed = 30, pauseMs = 2200) {
+      const [display, setDisplay] = useState("");
+      const [phaseIdx, setPhaseIdx] = useState(0);
+      const [charIdx, setCharIdx] = useState(0);
+      const [deleting, setDeleting] = useState(false);
+      const [pausing, setPausing] = useState(false);
+      useEffect(() => { setDisplay(""); setPhaseIdx(0); setCharIdx(0); setDeleting(false); setPausing(false); }, [resetKey]);
+      useEffect(() => {
+        if (pausing) { const t = setTimeout(() => { setPausing(false); setDeleting(true); }, pauseMs); return () => clearTimeout(t); }
+        const current = phrases[phaseIdx];
+        if (!deleting && charIdx < current.length) { const t = setTimeout(() => { setCharIdx(c => c + 1); setDisplay(current.slice(0, charIdx + 1)); }, typingSpeed); return () => clearTimeout(t); }
+        if (!deleting && charIdx === current.length) { setPausing(true); return; }
+        if (deleting && charIdx > 0) { const t = setTimeout(() => { setCharIdx(c => c - 1); setDisplay(current.slice(0, charIdx - 1)); }, deleteSpeed); return () => clearTimeout(t); }
+        if (deleting && charIdx === 0) { setDeleting(false); setPhaseIdx(i => (i + 1) % phrases.length); }
+      }, [charIdx, deleting, pausing, phaseIdx, phrases, typingSpeed, deleteSpeed, pauseMs]);
+      return display;
+    }
+
+    function Reveal({ children, delay = 0, from = "bottom", style = {} }) {
+      const [ref, inView] = useInView();
+      const transforms = {
+        bottom: "translateY(40px)", left: "translateX(-40px)", right: "translateX(40px)",
+        scale: "scale(0.9)", tilt: "rotate(-5deg) translateY(28px)", tiltR: "rotate(5deg) translateY(28px)",
+      };
+      return (
+        <div ref={ref} style={{
+          opacity: inView ? 1 : 0,
+          transform: inView ? "none" : transforms[from],
+          transition: `opacity 1s cubic-bezier(.22,1,.36,1) ${delay}s, transform 1s cubic-bezier(.22,1,.36,1) ${delay}s`,
+          ...style,
+        }}>{children}</div>
+      );
+    }
+
+    /* ─── HALFTONE OVERLAY ───────────────────── */
+    function Halftone({ color = "#000", opacity = 0.2, size = 6, gap = 3, style = {} }) {
+      return (
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          backgroundImage: `radial-gradient(circle, ${color} ${size/3}px, transparent ${size/3 + 0.5}px)`,
+          backgroundSize: `${size + gap}px ${size + gap}px`,
+          opacity, ...style,
+        }}/>
+      );
+    }
+
+    /* ─── HALFTONE GRADIENT EDGE ─────────────── */
+    function HalftoneEdge({ from, to, color = "#000", flip = false }) {
+      // a band that fades halftone dots from dense to sparse to feel like a printed bleed
+      return (
+        <div style={{
+          position: "relative", width: "100%", height: 80,
+          background: `linear-gradient(${flip ? "0deg" : "180deg"}, ${from} 0%, ${to} 100%)`,
+          overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: `radial-gradient(circle, ${color} 2px, transparent 2.5px)`,
+            backgroundSize: "10px 10px",
+            opacity: flip ? 0.6 : 0.55,
+            maskImage: flip
+              ? "linear-gradient(0deg, transparent 0%, #000 100%)"
+              : "linear-gradient(180deg, transparent 0%, #000 100%)",
+            WebkitMaskImage: flip
+              ? "linear-gradient(0deg, transparent 0%, #000 100%)"
+              : "linear-gradient(180deg, transparent 0%, #000 100%)",
+          }}/>
+        </div>
+      );
+    }
+
+    /* ─── DIAGONAL SLASH BETWEEN SECTIONS ────── */
+    function DiagonalCut({ from, to, height = 90, direction = "left" }) {
+      // direction "left": next section's color comes from bottom-left up to top-right
+      const polyTop = direction === "left"
+        ? "0,0 100,0 100,100 0,40"
+        : "0,0 100,0 100,40 0,100";
+      const polyBottom = direction === "left"
+        ? "0,40 100,100 100,0 0,0".split(" ").reverse().join(" ") // unused, kept clean
+        : "0,100 0,40 100,0 100,100";
+      return (
+        <div style={{ position: "relative", width: "100%", height, background: from }}>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}>
+            <polygon points={direction === "left" ? "0,100 100,40 100,100" : "0,40 100,100 0,100"} fill={to}/>
+            <polyline points={direction === "left" ? "0,100 100,40" : "0,40 100,100"} stroke="#0a0a0a" strokeWidth="0.4" fill="none"/>
+          </svg>
+        </div>
+      );
+    }
+
+    /* ─── TORN PAPER EDGE BETWEEN SECTIONS ───── */
+    function TornEdge({ from, to, height = 60 }) {
+      // jagged path: top is "from" color, bottom is "to" color
+      return (
+        <div style={{ position: "relative", width: "100%", height, background: to }}>
+          <svg viewBox="0 0 400 60" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "block" }}>
+            <path
+              d="M0,0 L400,0 L400,38 Q392,52 376,42 T336,46 T296,38 T256,50 T216,40 T176,46 T136,38 T96,50 T56,42 T16,46 T0,42 Z"
+              fill={from}
+            />
+            <path
+              d="M0,42 Q16,46 56,42 T96,50 T136,38 T176,46 T216,40 T256,50 T296,38 T336,46 T376,42 L400,38 L400,46 Q392,58 376,48 T336,52 T296,44 T256,56 T216,46 T176,52 T136,44 T96,56 T56,48 T16,52 T0,48 Z"
+              fill="#0a0a0a" opacity="0.22"
+            />
+          </svg>
+        </div>
+      );
+    }
+
+    /* ─── STICKER BRIDGE (HARD COLOR SWAP) ───── */
+    function StickerBridge({ from, to, label, sticker = "★", color, bg }) {
+      return (
+        <div style={{ position: "relative", width: "100%", background: from }}>
+          <div style={{ width: "100%", height: 8, background: to, position: "relative" }}/>
+          <div style={{
+            position: "absolute", top: -28, left: "10%",
+            background: bg || "#f5e635",
+            color: color || "#0a0a0a",
+            padding: "8px 18px",
+            transform: "rotate(-6deg)",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.4)",
+            zIndex: 5,
+            fontFamily: "'Permanent Marker', cursive",
+            fontSize: 16,
+            letterSpacing: "0.05em",
+            border: "2px solid #0a0a0a",
+          }}>
+            {sticker} {label}
+          </div>
+        </div>
+      );
+    }
+
+    /* ─── WASHI TAPE ─────────────────────────── */
+    function Tape({ width = 80, color = "#f5e635", rotate = -8, style = {} }) {
+      return (
+        <div style={{
+          width, height: 22,
+          background: `repeating-linear-gradient(90deg, ${color}, ${color} 8px, ${color}aa 8px, ${color}aa 12px)`,
+          opacity: 0.92,
+          transform: `rotate(${rotate}deg)`,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+          ...style,
+        }}/>
+      );
+    }
+
+    /* ─── SCRIBBLE STICKER (round badge) ─────── */
+    function Badge({ children, color = "#f5e635", bg = "#ff2d8a", rotate = -8, size = 90 }) {
+      return (
+        <div style={{
+          width: size, height: size,
+          background: bg,
+          color,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          textAlign: "center", padding: 10,
+          fontFamily: "'Permanent Marker', cursive",
+          fontSize: 14, lineHeight: 1.1,
+          transform: `rotate(${rotate}deg)`,
+          boxShadow: "0 6px 16px rgba(0,0,0,0.45)",
+          border: "3px solid #0a0a0a",
+          borderRadius: "50%",
+          flexShrink: 0,
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    /* ─── CURSOR ─────────────────────────────── */
+    function CursorBlob() {
+      const [pos, setPos] = useState({ x: -300, y: -300 });
+      const [visible, setVisible] = useState(false);
+      useEffect(() => {
+        const move = (e) => { setPos({ x: e.clientX, y: e.clientY }); setVisible(true); };
+        const leave = () => setVisible(false);
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseleave", leave);
+        return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseleave", leave); };
+      }, []);
+      return (
+        <div style={{
+          position: "fixed", pointerEvents: "none", zIndex: 9999,
+          left: pos.x - 220, top: pos.y - 220, width: 440, height: 440,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${P.yellow}28 0%, ${P.pink}18 30%, transparent 65%)`,
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.4s, left 0.09s linear, top 0.09s linear",
+          mixBlendMode: "screen",
+        }}/>
+      );
+    }
+
+    /* ─── NAV ────────────────────────────────── */
+    function Nav() {
+      const { lang, setLang, T } = useContext(LangCtx);
+      const [scrolled, setScrolled] = useState(false);
+
+      /* Track the rolling scroll progress through the page so the
+         "professional portfolio" link blends smoothly between the section colors
+         instead of switching abruptly at each section boundary. */
+      const [section, setSection] = useState("top");
+      const [progress, setProgress] = useState(0); /* 0..1 inside the current section */
+      useEffect(() => {
+        const ids = ["film","photo","graphite","sculpture","watercolor","markers","collages","dance"];
+        const onScroll = () => {
+          setScrolled(window.scrollY > 40);
+          const probe = window.innerHeight * 0.3;
+          let current = "top";
+          let currentEl = null;
+          let nextEl = null;
+          for (let i = 0; i < ids.length; i++) {
+            const el = document.getElementById(ids[i]);
+            if (!el) continue;
+            const r = el.getBoundingClientRect();
+            if (r.top <= probe) {
+              current = ids[i];
+              currentEl = el;
+              nextEl = document.getElementById(ids[i+1]) || null;
+            }
+          }
+          setSection(current);
+          /* fraction of the way through the current section, used to ease into the next color */
+          if (currentEl) {
+            const r1 = currentEl.getBoundingClientRect();
+            const h = r1.height || 1;
+            const t = Math.min(1, Math.max(0, (probe - r1.top) / h));
+            setProgress(t);
+          } else {
+            /* still above the first section — measure how far into the hero+intro we are */
+            const first = document.getElementById("film");
+            if (first) {
+              const fr = first.getBoundingClientRect();
+              const span = window.scrollY + fr.top || 1;
+              setProgress(Math.min(1, Math.max(0, window.scrollY / span)));
+            }
+          }
+        };
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll);
+        return () => {
+          window.removeEventListener("scroll", onScroll);
+          window.removeEventListener("resize", onScroll);
+        };
+      }, []);
+
+      /* sequence of (section -> link color). "gradient" means the multicolor wordmark. */
+      const order = ["top","film","photo","graphite","sculpture","watercolor","markers","collages","dance"];
+      const sectionColors = {
+        /* "yellow against yellow" was unreadable in the hero — use pink instead
+           for the very top, and pink again for collages where the background is yellow. */
+        top:        P.pink,
+        film:       P.orange,
+        photo:      "#f0a020", /* amber, between yellow and orange so it doesn't repeat the film color */
+        graphite:   P.cyanLight,
+        sculpture:  P.yellow,
+        watercolor: P.pink,
+        markers:    P.lime,
+        collages:   P.pink,
+        dance:      "gradient",
+      };
+      /* Interpolate between current section color and the next so transitions are smooth. */
+      function hexToRgb(h) {
+        if (!h || h === "gradient") return null;
+        let s = h.replace("#","");
+        if (s.length === 3) s = s.split("").map(c => c+c).join("");
+        const n = parseInt(s, 16);
+        return [(n>>16)&255, (n>>8)&255, n&255];
+      }
+      function mix(a, b, t) { return Math.round(a + (b - a) * t); }
+      const idx = order.indexOf(section);
+      const fromKey = section;
+      const toKey   = order[Math.min(order.length - 1, idx + 1)] || section;
+      const from = sectionColors[fromKey];
+      const to   = sectionColors[toKey];
+      const proGradient = `linear-gradient(90deg, ${P.pink} 0%, ${P.orange} 22%, ${P.lime} 48%, ${P.cyan} 72%, ${P.magenta} 100%)`;
+
+      let proStyle;
+      if (from === "gradient" || to === "gradient") {
+        proStyle = {
+          backgroundImage: proGradient,
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          color: "transparent",
+        };
+      } else {
+        const a = hexToRgb(from);
+        const b = hexToRgb(to);
+        const t = Math.max(0, Math.min(1, progress));
+        const r = mix(a[0], b[0], t);
+        const g = mix(a[1], b[1], t);
+        const bl = mix(a[2], b[2], t);
+        proStyle = { color: `rgb(${r}, ${g}, ${bl})` };
+      }
+      const proIsGradient = (from === "gradient" || to === "gradient");
+      const proColor = proStyle.color || P.pink;
+
+      const items = [
+        { href: "#film",       label: T.nav.film,       color: P.orange },
+        { href: "#photo",      label: T.nav.photo,      color: "#f0a020" },
+        { href: "#graphite",   label: T.nav.graphite,   color: P.cyanLight },
+        { href: "#sculpture",  label: T.nav.sculpture,  color: P.yellow },
+        { href: "#watercolor", label: T.nav.watercolor, color: P.cyan },
+        { href: "#markers",    label: T.nav.markers,    color: P.lime },
+        { href: "#collages",   label: T.nav.collages,   color: P.yellow },
+        { href: "#dance",      label: T.nav.dance,      color: P.pink },
+      ];
+
+      const LangBtn = ({ code }) => {
+        const active = lang === code;
+        return (
+          <button onClick={() => setLang(code)} style={{
+            background: active ? P.pink : "none",
+            border: "2px solid " + (active ? P.pink : "transparent"),
+            cursor: active ? "default" : "pointer",
+            fontSize: 11, fontWeight: 700,
+            color: active ? P.black : P.cream,
+            letterSpacing: "0.08em",
+            padding: "3px 8px",
+            transition: "all 0.2s",
+            fontFamily: "'Archivo Black', sans-serif",
+          }}
+            onMouseEnter={e => { if (!active) { e.currentTarget.style.color = P.pink; e.currentTarget.style.borderColor = P.pink; } }}
+            onMouseLeave={e => { if (!active) { e.currentTarget.style.color = P.cream; e.currentTarget.style.borderColor = "transparent"; } }}
+          >{code.toUpperCase()}</button>
+        );
+      };
+
+      return (
+        <nav style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          padding: "0 1.5rem", height: 56,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: scrolled ? "rgba(10,10,10,0.92)" : "transparent",
+          borderBottom: scrolled ? `2px solid ${P.pink}` : "2px solid transparent",
+          backdropFilter: scrolled ? "blur(10px)" : "none",
+          transition: "background 0.3s, border-color 0.3s",
+        }}>
+          <a href="#top" className="archivo" style={{
+            fontSize: 30, letterSpacing: "0.02em",
+            color: P.cream, textDecoration: "none",
+            display: "inline-flex", alignItems: "baseline", gap: 14,
+          }}>
+            <span>Anza</span>
+            <span style={{
+              fontSize: 22, opacity: 0.85, letterSpacing: "0.02em",
+              fontWeight: 400,
+              textTransform: "lowercase",
+            }}>by ck<span style={{ color: P.pink }}>.</span></span>
+          </a>
+
+          <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+            {items.map(({ href, label, color }) => (
+              <a key={href} href={href} className="anton" style={{
+                color: P.cream, fontSize: 14, textDecoration: "none",
+                transition: "color 0.2s, transform 0.2s", letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                display: "inline-block",
+                /* dark text shadow keeps the white labels readable when they pass over the yellow blob in the hero or any other bright section */
+                textShadow: "0 1px 3px rgba(0,0,0,0.55), 0 0 6px rgba(0,0,0,0.3)",
+              }}
+                onMouseEnter={e => { e.currentTarget.style.color = color; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.color = P.cream; e.currentTarget.style.transform = "none"; }}
+              >{label}</a>
+            ))}
+
+            <a href="index.html" target="_blank" rel="noreferrer" className="handwritten" style={{
+              /* link color eases smoothly between section colors as the user scrolls */
+              fontSize: 17, textDecoration: "none",
+              letterSpacing: "0.02em", marginLeft: 6,
+              transition: "color 0.6s ease, background-image 0.6s ease, transform 0.2s",
+              display: "inline-block",
+              textShadow: proIsGradient ? "none" : "0 1px 3px rgba(0,0,0,0.5)",
+              ...proStyle,
+            }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = "translateX(2px)";
+                if (!proIsGradient) {
+                  e.currentTarget.style.color = P.cream;
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = "none";
+                if (!proIsGradient) {
+                  e.currentTarget.style.color = proColor;
+                }
+              }}
+            >{T.nav.pro}</a>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 4 }}>
+              <LangBtn code="en" />
+              <LangBtn code="es" />
+            </div>
+          </div>
+        </nav>
+      );
+    }
+
+    /* ═══════════════════════════════════════════ */
+    /* ═══════════════ HERO ═════════════════════ */
+    /* ═══════════════════════════════════════════ */
+    function Hero() {
+      const { T, lang } = useContext(LangCtx);
+      const typed = useTypewriter(T.hero.phrases, lang);
+
+      return (
+        <header id="top" style={{
+          position: "relative",
+          minHeight: "100vh",
+          background: P.magentaDeep,
+          overflow: "hidden",
+          padding: 0,
+        }}>
+          {/* base color fields that show through tears */}
+          <div style={{ position: "absolute", top: "-12%", right: "-10%", width: "55%", aspectRatio: "1", background: P.yellow, opacity: 0.95 }}/>
+          <div style={{ position: "absolute", bottom: "-18%", left: "-14%", width: "55%", aspectRatio: "1", background: P.cyan, opacity: 0.9 }}/>
+          <div style={{ position: "absolute", top: "38%", left: "28%", width: "38%", aspectRatio: "1", background: P.pink, opacity: 0.95 }}/>
+          <div style={{ position: "absolute", top: "8%", left: "12%", width: 220, height: 220, background: P.lime, opacity: 0.85 }}/>
+          <div style={{ position: "absolute", top: "62%", right: "18%", width: 180, height: 180, background: P.orange, opacity: 0.85 }}/>
+
+          {/* halftone overlay */}
+          <Halftone color={P.black} opacity={0.16} size={5} gap={2}/>
+
+          {/* ── TORN PAPER COLLAGE ── */}
+          {/* ── layout coordinates from the user's hero-editor session: viewport-percent for position, pixels for size ── */}
+
+          {/* big newspaper strip */}
+          <div className="torn-b newsprint" style={{
+            position: "absolute", top: 519, left: 52,
+            width: 800, height: 100, transform: "rotate(-2deg)",
+            filter: "drop-shadow(0 12px 22px rgba(0,0,0,0.45))",
+            opacity: 0.94, zIndex: 2,
+          }}/>
+
+          {/* big white paper with "where i make things" */}
+          <div className="torn-a paper-grain" style={{
+            position: "absolute", top: 189, left: 119,
+            width: 620, height: 380,
+            transform: "rotate(-3deg)",
+            filter: "drop-shadow(8px 14px 0 rgba(0,0,0,0.25)) drop-shadow(0 22px 28px rgba(0,0,0,0.4))",
+            padding: "9% 7% 7%",
+            display: "flex", flexDirection: "column", justifyContent: "center",
+            zIndex: 3,
+          }}>
+            <h1 className="anton" style={{
+              fontSize: "clamp(2.2rem, 5.2vw, 4.6rem)",
+              fontWeight: 400, lineHeight: 0.88,
+              color: P.black, letterSpacing: "-0.03em",
+              textTransform: "lowercase",
+            }}>
+              <span style={{ display: "block" }}>{T.hero.title1}</span>
+              <span style={{ display: "block", color: P.pinkDeep, fontStyle: "italic", paddingLeft: "16%", textTransform: "none" }}>{T.hero.title2}</span>
+              <span style={{ display: "block", textAlign: "right", color: P.tealDeep }}>{T.hero.title3}</span>
+            </h1>
+          </div>
+
+          {/* yellow torn piece */}
+          <div className="torn-c" style={{
+            position: "absolute", top: 210, left: 828,
+            width: 300, height: 240,
+            background: P.yellow, transform: "rotate(5deg)",
+            filter: "drop-shadow(6px 10px 0 rgba(0,0,0,0.25))",
+            zIndex: 2,
+          }}/>
+
+          {/* cyan torn piece with "by experimenting" */}
+          <div className="torn-d" style={{
+            position: "absolute", top: 380, left: 898,
+            width: 560, height: 370,
+            background: P.cyan, transform: "rotate(2.5deg)",
+            filter: "drop-shadow(8px 14px 0 rgba(0,0,0,0.3)) drop-shadow(0 22px 30px rgba(0,0,0,0.4))",
+            padding: "6% 5% 8% 8%",
+            display: "flex", flexDirection: "column", justifyContent: "center",
+            zIndex: 4,
+          }}>
+            <h1 className="anton" style={{
+              fontSize: "clamp(1.9rem, 4vw, 3.6rem)",
+              fontWeight: 400, lineHeight: 0.92,
+              color: P.black, letterSpacing: "-0.02em",
+              textTransform: "lowercase",
+              marginLeft: "-44px",
+            }}>
+              {/* "by" upright; "experimenting" italic and a step larger */}
+              <span style={{ display: "block", fontStyle: "normal", textAlign: "left" }}>{T.hero.title4}</span>
+              <span style={{
+                display: "block", textAlign: "left", color: P.cream,
+                fontStyle: "italic", fontSize: "1.2em",
+              }}>{T.hero.title5}</span>
+            </h1>
+          </div>
+
+          {/* newspaper scrap — top-right (off-screen at 1285 in her composition) */}
+          <div className="torn-c newsprint" style={{
+            position: "absolute", top: 395, left: 1285,
+            width: 200, height: 72, transform: "rotate(8deg)",
+            filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.4))",
+            opacity: 0.9, zIndex: 5,
+          }}/>
+          {/* newspaper scrap — bottom-left */}
+          <div className="torn-a newsprint" style={{
+            position: "absolute", top: 827, left: 361,
+            width: 200, height: 64, transform: "rotate(-6deg)",
+            filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.4))",
+            opacity: 0.85, zIndex: 5,
+          }}/>
+          {/* newspaper scrap — mid-left */}
+          <div className="torn-b newsprint" style={{
+            position: "absolute", top: 509, left: 172,
+            width: 140, height: 48, transform: "rotate(12deg)",
+            filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.4))",
+            opacity: 0.82, zIndex: 5,
+          }}/>
+
+          {/* handwritten name tag */}
+          <div style={{
+            position: "absolute", top: 643, left: 1251, zIndex: 11,
+            transform: "rotate(4deg)",
+          }}>
+            <p className="handwritten" style={{
+              fontSize: "1.3rem", color: P.cream, lineHeight: 1.1,
+              letterSpacing: "0.02em",
+              textShadow: "0 2px 4px rgba(0,0,0,0.45)",
+            }}>
+              <span style={{ display: "block", opacity: 0.65, fontSize: "0.85rem", letterSpacing: "0.18em", textTransform: "uppercase" }}>by</span>
+              {T.hero.name}<span style={{ color: P.pink }}>.</span>
+            </p>
+          </div>
+
+
+          {/* old asymmetric title — removed */}
+          <div style={{ display: "none" }}>
+
+            <Reveal delay={0.4} style={{display:'none'}}>
+              <div style={{
+                boxShadow: `8px 8px 0 ${P.yellow}`,
+                border: `3px solid ${P.yellow}`,
+                minHeight: 56,
+              }}>
+                <span>{typed || " "}</span>
+                <span style={{ color: P.pink, animation: "blink 1s step-end infinite" }}>|</span>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* tape strips at user-chosen positions (px) */}
+          <Tape width={90}  color={P.yellow} rotate={-14} style={{ position: "absolute", top: 210, left: 210,  zIndex: 10 }}/>
+          <Tape width={110} color={P.lime}   rotate={10}  style={{ position: "absolute", top: 268, left: 73,   zIndex: 10 }}/>
+          <Tape width={80}  color={P.pink}   rotate={-8}  style={{ position: "absolute", top: 465, left: 1419, zIndex: 10 }}/>
+          <Tape width={120} color={P.cream}  rotate={6}   style={{ position: "absolute", top: 395, left: 869,  zIndex: 10 }}/>
+
+
+          {/* scribbled arrow */}
+          <svg style={{ position: "absolute", top: 460, left: 647, width: 130, height: 110, zIndex: 7, transform: "rotate(-14deg)" }} viewBox="0 0 130 110">
+            <path d="M 110 12 Q 75 32, 50 64 Q 32 84, 18 96" stroke={P.lime} strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+            <path d="M 12 92 L 18 96 L 24 86" stroke={P.lime} strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+
+          {/* black sun */}
+          <div style={{ position: "absolute", top: 624, left: 880, zIndex: 8 }}>
+            <svg width="130" height="130" viewBox="0 0 80 80" style={{ animation: "spinSlow 28s linear infinite" }}>
+              <path d="M40 4 L46 32 L74 36 L52 50 L60 76 L40 60 L20 76 L28 50 L6 36 L34 32 Z" fill={P.black} stroke={P.yellow} strokeWidth="2"/>
+            </svg>
+          </div>
+
+          {/* typewriter sticker */}
+          <div style={{
+            position: "absolute", top: 807, left: 171, width: 320, zIndex: 12,
+            transform: "rotate(-2deg)",
+          }}>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              background: P.black, color: P.cream,
+              padding: "10px 28px",
+              fontFamily: "'Permanent Marker', cursive",
+              fontSize: "clamp(0.95rem, 1.8vw, 1.25rem)",
+              boxShadow: "7px 7px 0 " + P.yellow,
+              border: "3px solid " + P.yellow,
+              minHeight: 52, minWidth: 280, textAlign: "center",
+            }}>
+              <span>{typed || " "}</span>
+              <span style={{ color: P.pink, animation: "blink 1s step-end infinite" }}>|</span>
+            </div>
+          </div>
+
+          {/* tiny scribbles — px positions from the editor session */}
+          <svg style={{ position: "absolute", top: 220, left: 153, zIndex: 7 }} width="44" height="44">
+            <path d="M 8 22 L 16 12 M 10 14 L 36 32 M 32 14 L 14 32" stroke={P.lime} strokeWidth="3" strokeLinecap="round"/>
+          </svg>
+          <svg style={{ position: "absolute", top: 498, left: 934, zIndex: 7 }} width="96" height="80" viewBox="0 0 38 38" preserveAspectRatio="none">
+            <circle cx="19" cy="19" r="15" fill="none" stroke={P.yellow} strokeWidth="3" strokeDasharray="3 5"/>
+          </svg>
+          <svg style={{ position: "absolute", top: 502, left: 148, zIndex: 7 }} width="54" height="54">
+            <path d="M 27 6 L 30 22 L 48 24 L 34 33 L 38 50 L 27 41 L 16 50 L 20 33 L 6 24 L 24 22 Z" fill={P.cyan} stroke={P.black} strokeWidth="1.5"/>
+          </svg>
+          <svg style={{ position: "absolute", top: 640, left: 1180, zIndex: 7 }} width="60" height="22">
+            <path d="M 4 12 Q 14 4, 24 12 T 44 10 T 56 12" stroke={P.cream} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          </svg>
+
+          {/* scroll cue */}
+          <div style={{
+            position: "absolute", top: 906, left: 1080,
+            zIndex: 13,
+            animation: "float 2.5s ease-in-out infinite",
+          }}>
+            <span className="marker" style={{ color: P.cream, fontSize: 18, letterSpacing: "0.1em" }}>↓ keep going ↓</span>
+          </div>
+        </header>
+      );
+    }
+
+    /* ═══════════════ INTRO ════════════════════ */
+    function Intro() {
+      const { T } = useContext(LangCtx);
+      return (
+        <section id="intro" style={{
+          position: "relative",
+          background: "linear-gradient(180deg, " + P.magentaDeep + " 0%, #5e1f3e 60%, #3a1228 100%)",
+          padding: "6rem 0.9rem 8rem",
+          overflow: "hidden",
+        }}>
+          {/* cream scribble texture */}
+          <svg viewBox="0 0 1200 700" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.14, pointerEvents: "none" }} preserveAspectRatio="xMidYMid slice">
+            <path d="M 0 80 Q 200 60, 400 90 T 800 70 T 1200 100" stroke={P.cream} strokeWidth="2" fill="none"/>
+            <path d="M 0 580 Q 250 600, 500 570 T 1000 590 T 1200 560" stroke={P.cream} strokeWidth="2" fill="none"/>
+            <path d="M 60 200 Q 80 250, 60 300 T 80 400" stroke={P.yellow} strokeWidth="1.5" fill="none"/>
+            <path d="M 1140 200 Q 1120 250, 1140 300 T 1120 400" stroke={P.lime} strokeWidth="1.5" fill="none"/>
+          </svg>
+
+          {/* a few halftone dots for texture */}
+          <Halftone color={P.yellow} opacity={0.08} size={4}/>
+
+          {/* big asymmetric content */}
+          <div style={{
+            maxWidth: 1100, margin: "0 auto",
+            display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "3rem",
+            alignItems: "start", position: "relative",
+          }}>
+            <div>
+              <Reveal from="left">
+                <p className="marker" style={{
+                  color: P.yellow, fontSize: "2.2rem",
+                  transform: "rotate(-3deg)", display: "inline-block",
+                  marginBottom: "0.5rem",
+                  textShadow: "3px 3px 0 " + P.black,
+                }}>{T.intro.greeting}</p>
+                <h2 className="anton" style={{
+                  fontSize: "clamp(3.5rem, 9vw, 6rem)",
+                  color: P.cream,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 0.95,
+                  marginBottom: "2rem",
+                }}>
+                  {T.intro.name}<span style={{ color: P.yellow }}>.</span>
+                </h2>
+              </Reveal>
+
+              <Reveal delay={0.15}>
+                <p style={{
+                  fontSize: "1.3rem", color: P.cream, lineHeight: 1.55,
+                  marginBottom: "1.2rem", maxWidth: 520,
+                }}>{T.intro.p1}</p>
+                <p style={{
+                  fontSize: "1.3rem", color: "#f0c8d8", lineHeight: 1.55,
+                  fontStyle: "italic", maxWidth: 520,
+                }}>{T.intro.p2}</p>
+                <p className="marker" style={{
+                  marginTop: "2rem", color: P.lime, fontSize: "1.7rem",
+                  transform: "rotate(-1deg)", display: "inline-block",
+                }}>{T.intro.note}</p>
+              </Reveal>
+            </div>
+
+            <div style={{ position: "relative", minHeight: 400 }}>
+              <Reveal from="right" delay={0.2}>
+                <div style={{ position: "absolute", top: 20, right: 0 }}>
+                  <Badge color={P.black} bg={P.yellow} rotate={-8} size={120}>
+                    ✶<br/>making<br/>since<br/>forever
+                  </Badge>
+                </div>
+                <div style={{ position: "absolute", top: 180, right: 60 }}>
+                  <Tape width={140} color={P.cyan} rotate={18}/>
+                </div>
+                <div style={{ position: "absolute", top: 240, right: 20 }}>
+                  <Tape width={110} color={P.lime} rotate={-8}/>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    /* ═══════════════ SECTION HEADER ═══════════ */
+    function SectionHeader({ number, label, h, accent, textColor, align = "left", bg }) {
+      return (
+        <div style={{
+          position: "relative", marginBottom: "3rem",
+          textAlign: align,
+        }}>
+          <Reveal from={align === "left" ? "left" : "right"}>
+            <div style={{
+              display: "inline-flex", alignItems: "flex-end", gap: 18, flexWrap: "wrap",
+              justifyContent: align === "right" ? "flex-end" : "flex-start",
+            }}>
+              <span className="anton" style={{
+                fontSize: "clamp(4rem, 9vw, 7rem)",
+                color: accent, lineHeight: 0.82,
+                letterSpacing: "-0.03em",
+                textShadow: `4px 4px 0 ${bg || "#0a0a0a"}`,
+              }}>
+                {String(number).padStart(2, "0")}
+              </span>
+              <span className="archivo" style={{
+                fontSize: "clamp(2.6rem, 6vw, 4.6rem)",
+                color: textColor, lineHeight: 0.85,
+                textTransform: "uppercase",
+                letterSpacing: "-0.02em",
+                background: accent,
+                padding: "6px 18px 10px",
+                color: bg || "#0a0a0a",
+                transform: "rotate(-1.5deg)",
+                display: "inline-block",
+                boxShadow: `5px 5px 0 ${bg || "#0a0a0a"}`,
+                border: `3px solid ${bg || "#0a0a0a"}`,
+              }}>
+                {label}
+              </span>
+            </div>
+            <h2 className="anton" style={{
+              fontSize: "clamp(2rem, 5vw, 3.4rem)",
+              fontWeight: 400, color: textColor,
+              marginTop: "1.4rem", maxWidth: 760, lineHeight: 1.05,
+              letterSpacing: "-0.01em",
+            }}>
+              {h}
+            </h2>
+            <svg width="200" height="26" style={{ marginTop: 12 }}>
+              <path d="M 5 16 Q 50 4, 100 16 T 195 14"
+                fill="none" stroke={accent} strokeWidth="4" strokeLinecap="round"
+                style={{ strokeDasharray: 280, animation: "scribbleIn 1.6s ease-out forwards" }}/>
+            </svg>
+          </Reveal>
+        </div>
+      );
+    }
+
+    /* ═══════════════ GRAPHITE ═══════════════ */
+    function GraphiteSection() {
+      const { T } = useContext(LangCtx);
+      const m = M.graphite;
+      const data = T.graphite;
+      const [hover, setHover] = useState(false);
+
+      return (
+        <>
+        <HalftoneEdge from={M.photo.bg} to={m.bg} color={P.cream}/>
+        <section id="graphite" style={{
+          position: "relative", padding: "5rem 0.9rem 7rem", background: m.bg, color: m.text,
+          overflow: "hidden",
+        }}>
+          <Halftone color={m.accent} opacity={0.08} size={4}/>
+
+          {/* big asymmetric layout */}
+          <div style={{ position: "relative", maxWidth: 1500, margin: "0 auto" }}>
+            <div style={{ paddingLeft: "4%", maxWidth: 760 }}>
+              <SectionHeader number={3} label={data.label} h={data.h} accent={m.accent} textColor={m.text} align="left"/>
+              <Reveal delay={0.05}>
+                <p style={{
+                  fontSize: "1.15rem", color: m.text, opacity: 0.85, lineHeight: 1.65,
+                  maxWidth: 580,
+                }}>{data.body}</p>
+              </Reveal>
+            </div>
+
+            {/* FEATURED: Aduana, large and offset */}
+            <div style={{ position: "relative", marginTop: "4rem" }}>
+              <Reveal delay={0.1}>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)",
+                  gap: "3rem",
+                  alignItems: "center",
+                }}>
+                  <div
+                    onMouseEnter={() => setHover(true)}
+                    onMouseLeave={() => setHover(false)}
+                    style={{
+                      position: "relative",
+                      transform: hover ? "rotate(-1deg) translateY(-6px)" : "rotate(-2.5deg)",
+                      transition: "transform 0.6s cubic-bezier(.22,1,.36,1)",
+                      filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.5))",
+                    }}>
+                    <div style={{
+                      background: P.cream,
+                      padding: 16,
+                      position: "relative",
+                    }}
+                      onContextMenu={e => e.preventDefault()}
+                      onDragStart={e => e.preventDefault()}>
+                      <img
+                        src="La Aduana - Dibujo de grafito.jpg"
+                        alt={data.featured.title}
+                        style={{ width: "100%", display: "block", filter: "contrast(1.06)", pointerEvents: "none", userSelect: "none" }}
+                      />
+                      <div style={{ position: "absolute", inset: 16, zIndex: 2, background: "transparent" }}/>
+                      {/* tape strips at corners */}
+                      <Tape width={80} color={P.yellow} rotate={-38} style={{ position: "absolute", top: 6, left: -26 }}/>
+                      <Tape width={80} color={P.cyan} rotate={38} style={{ position: "absolute", top: 6, right: -26 }}/>
+                    </div>
+                  </div>
+
+                  <div style={{ paddingLeft: "5%" }}>
+                    <Badge color={P.black} bg={m.accent} rotate={-10} size={100}>★<br/>featured</Badge>
+                    <h3 className="anton" style={{
+                      fontSize: "clamp(2rem, 4vw, 2.8rem)",
+                      color: m.text, marginTop: 24, lineHeight: 1.05,
+                      letterSpacing: "-0.01em",
+                    }}>{data.featured.title}</h3>
+                    <p className="marker" style={{
+                      color: m.accent, fontSize: 18, marginTop: 8, opacity: 0.95,
+                    }}>{data.featured.meta}</p>
+                    <p style={{
+                      color: m.text, opacity: 0.8, fontSize: "1.1rem",
+                      lineHeight: 1.6, marginTop: 16, maxWidth: 380,
+                    }}>{data.featured.caption}</p>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+
+            {/* FEATURED 2: the portrait — image on RIGHT, text on LEFT for mirror layout */}
+            <div style={{ position: "relative", marginTop: "5rem" }}>
+              <Reveal delay={0.1} from="right">
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.2fr)",
+                  gap: "3rem",
+                  alignItems: "center",
+                }}>
+                  <div style={{ order: 0, paddingLeft: "12%" }}>
+                    <Badge color={P.black} bg={m.alt} rotate={8} size={100}>★<br/>portrait</Badge>
+                    <h3 className="anton" style={{
+                      fontSize: "clamp(2rem, 4vw, 2.8rem)",
+                      color: m.text, marginTop: 24, lineHeight: 1.05,
+                      letterSpacing: "-0.01em",
+                    }}>{data.featured2.title}</h3>
+                    <p className="marker" style={{
+                      color: m.alt, fontSize: 18, marginTop: 8, opacity: 0.95,
+                    }}>{data.featured2.meta}</p>
+                    <p style={{
+                      color: m.text, opacity: 0.8, fontSize: "1.1rem",
+                      lineHeight: 1.6, marginTop: 16, maxWidth: 380,
+                    }}>{data.featured2.caption}</p>
+                  </div>
+                  <PortraitCard src="graphite-featured.jpg" alt={data.featured2.title}/>
+                </div>
+              </Reveal>
+            </div>
+
+            {/* gallery: varied sizes, off-center grid */}
+            <div style={{ marginTop: "5rem" }}>
+              <Reveal>
+                <p className="marker" style={{
+                  color: m.alt, fontSize: "1.7rem",
+                  transform: "rotate(-2deg)", display: "inline-block",
+                  marginLeft: "10%",
+                }}>✶ {data.galleryLabel}</p>
+              </Reveal>
+
+              {/* 5 favourites on the homepage: 3 vertical portraits in row 1, then 2 horizontals in row 2. */}
+              <div style={{
+                marginTop: 24,
+                display: "grid",
+                gridTemplateColumns: "repeat(12, 1fr)",
+                gap: 24,
+                alignItems: "start",
+              }}>
+                {data.gallery.map((label, i) => {
+                  const items = [
+                    { src: "graphite-torso.jpg", ratio: "3 / 4", col: "1 / 5",  rot: -3 },
+                    { src: "graphite-2.jpg",     ratio: "3 / 4", col: "5 / 9",  rot: 2 },
+                    { src: "graphite-5.jpg",     ratio: "3 / 4", col: "9 / 13", rot: -1 },
+                    { src: "graphite-9.jpg",     ratio: "4 / 3", col: "1 / 7",  rot: -2 },
+                    { src: "graphite-13.jpg",    ratio: "4 / 3", col: "7 / 13", rot: 1 },
+                  ];
+                  const it = items[i] || { src: undefined, ratio: "3 / 4", col: "auto", rot: 0 };
+                  return (
+                    <div key={i} style={{ gridColumn: it.col }}>
+                      <Reveal delay={(i % 5) * 0.06} from="tilt">
+                        <SketchCard label={label} rot={it.rot} hue={m.hue} accent={m.accent} src={it.src} ratio={it.ratio}/>
+                      </Reveal>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* see all drawings button */}
+              <Reveal delay={0.2}>
+                <div style={{ textAlign: "center", marginTop: "4rem" }}>
+                  <a href="drawings.html" className="marker" style={{
+                    display: "inline-block", fontSize: "1.4rem", color: P.cream,
+                    textDecoration: "none", padding: "12px 26px",
+                    background: m.bg, border: "3px solid " + m.accent,
+                    boxShadow: "6px 6px 0 " + m.accent,
+                    transition: "transform 0.25s, box-shadow 0.25s, background 0.25s",
+                  }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform = "translate(-3px,-3px)";
+                      e.currentTarget.style.boxShadow = "9px 9px 0 " + m.accent + ", inset 0 0 30px " + m.accent + "aa";
+                      e.currentTarget.style.background = "linear-gradient(135deg, " + m.bg + " 0%, " + m.accent + "55 100%)";
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = "none";
+                      e.currentTarget.style.boxShadow = "6px 6px 0 " + m.accent;
+                      e.currentTarget.style.background = m.bg;
+                    }}
+                  >{data.seeAll}</a>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+        </>
+      );
+    }
+
+    function PortraitCard({ src, alt }) {
+      const [hover, setHover] = useState(false);
+      return (
+        <div
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          style={{
+            order: 1, position: "relative",
+            transform: hover ? "rotate(0.5deg) translateY(-6px)" : "rotate(2deg)",
+            transition: "transform 0.6s cubic-bezier(.22,1,.36,1)",
+            filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.5))",
+          }}
+            onContextMenu={e => e.preventDefault()}
+            onDragStart={e => e.preventDefault()}>
+          <div style={{ background: P.cream, padding: 16, position: "relative" }}>
+            <img
+              src={src}
+              alt={alt}
+              style={{ width: "100%", display: "block", filter: "contrast(1.04)", pointerEvents: "none", userSelect: "none" }}
+            />
+            <div style={{ position: "absolute", inset: 16, zIndex: 2, background: "transparent" }}/>
+            <Tape width={80} color={P.lime} rotate={-38} style={{ position: "absolute", top: 6, left: -26 }}/>
+            <Tape width={80} color={P.pink} rotate={38} style={{ position: "absolute", top: 6, right: -26 }}/>
+          </div>
+        </div>
+      );
+    }
+
+    function SketchCard({ label, rot = 0, hue, accent, src, ratio = "3 / 4" }) {
+      const [hover, setHover] = useState(false);
+      const [errored, setErrored] = useState(false);
+      const showImage = src && !errored;
+      return (
+        <div
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          onContextMenu={e => e.preventDefault()}
+          onDragStart={e => e.preventDefault()}
+          style={{
+            background: P.cream,
+            padding: 12,
+            transform: hover ? `rotate(${rot * 0.3}deg) translateY(-8px)` : `rotate(${rot}deg)`,
+            transition: "transform 0.5s cubic-bezier(.22,1,.36,1)",
+            boxShadow: hover ? "0 20px 40px rgba(0,0,0,0.55)" : "0 12px 24px rgba(0,0,0,0.4)",
+            position: "relative",
+            userSelect: "none", WebkitUserSelect: "none",
+          }}>
+          <div style={{
+            aspectRatio: ratio,
+            background: showImage
+              ? "url(\"" + src + "\") center/cover #d4cbb0"
+              : "linear-gradient(135deg, #d4cbb0 0%, " + hue + " 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            position: "relative", overflow: "hidden",
+            border: errored ? "2px dashed " + accent : "none",
+          }}>
+            {/* hidden img to detect missing file */}
+            {src && <img src={src} alt="" onError={() => setErrored(true)}
+              style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}/>}
+            {/* transparent overlay to swallow right-click on real images */}
+            {showImage && <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "transparent" }}
+              onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}/>}
+            {!showImage && (
+              <>
+                <svg style={{ position: "absolute", inset: 0, opacity: 0.25 }} viewBox="0 0 200 250" preserveAspectRatio="none">
+                  <path d="M 20 60 Q 90 90, 180 70" stroke={hue} strokeWidth="2" fill="none"/>
+                  <path d="M 25 110 Q 100 140, 175 120" stroke={hue} strokeWidth="1.5" fill="none"/>
+                  <path d="M 30 170 Q 110 200, 170 180" stroke={hue} strokeWidth="1.2" fill="none"/>
+                </svg>
+                {src && errored ? (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: 12, textAlign: "center" }}>
+                    <span className="marker" style={{ color: accent, fontSize: "1rem" }}>missing</span>
+                    <code style={{ background: accent, color: "#0a0a0a", padding: "2px 8px", fontSize: 10, letterSpacing: "0.04em" }}>{src}</code>
+                  </div>
+                ) : (
+                  <span className="handwritten" style={{
+                    color: P.slate, fontSize: 18, opacity: 0.75,
+                    padding: "0 12px", position: "relative", zIndex: 1, textAlign: "center",
+                  }}>{label}</span>
+                )}
+              </>
+            )}
+          </div>
+          <p className="handwritten" style={{
+            textAlign: "center", color: P.slate, fontSize: "1.15rem", fontWeight: 600,
+            marginTop: 8, opacity: 0.92, lineHeight: 1.15,
+          }}>{label}</p>
+        </div>
+      );
+    }
+
+    /* ═══════════════ WATERCOLOR ═══════════════ */
+    function WatercolorSection() {
+      const { T } = useContext(LangCtx);
+      const m = M.watercolor;
+      const data = T.watercolor;
+
+      return (
+        <>
+        <StickerBridge from={M.sculpture.bg} to={m.bg} label="WET TECHNIQUES" bg={P.cyan} color={P.black}/>
+        <section id="watercolor" style={{
+          position: "relative", padding: "5rem 0.9rem 7rem",
+          background: m.bg, color: m.text, overflow: "hidden",
+        }}>
+          {/* camouflaged portrait in the background, blended into teal */}
+          {/* portrait sits slightly left of center; all four sides fade out evenly using
+             a composite mask that gradients each edge independently rather than a radial. */}
+          <div style={{
+            position: "absolute", top: "8%", left: "12%",
+            width: "min(520px, 40%)", aspectRatio: "3 / 4",
+            backgroundImage: "url(\"coni-portrait.jpg\")",
+            backgroundSize: "cover", backgroundPosition: "center",
+            opacity: 0.65,
+            mixBlendMode: "soft-light",
+            filter: "saturate(0.7)",
+            pointerEvents: "none",
+            WebkitMaskImage: [
+              "linear-gradient(to right,  transparent 0%, black 22%, black 78%, transparent 100%)",
+              "linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%)",
+            ].join(", "),
+            WebkitMaskComposite: "source-in",
+            maskImage: [
+              "linear-gradient(to right,  transparent 0%, black 22%, black 78%, transparent 100%)",
+              "linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%)",
+            ].join(", "),
+            maskComposite: "intersect",
+            zIndex: 0,
+          }}/>
+
+          {/* big bleeds in background */}
+          <svg viewBox="0 0 1200 700" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.55, pointerEvents: "none" }} preserveAspectRatio="xMidYMid slice">
+            <defs><filter id="wc-blur"><feGaussianBlur stdDeviation="50"/></filter></defs>
+            <g filter="url(#wc-blur)" style={{ animation: "drift 24s ease-in-out infinite" }}>
+              <circle cx="200" cy="180" r="220" fill={P.cyanLight} opacity="0.55"/>
+              <circle cx="1000" cy="500" r="240" fill={P.pinkHot} opacity="0.45"/>
+              <circle cx="700" cy="200" r="180" fill={P.yellow} opacity="0.4"/>
+            </g>
+          </svg>
+
+          <div style={{ position: "relative", maxWidth: 1500, margin: "0 auto" }}>
+            <div style={{ paddingRight: "6%", marginLeft: "auto", maxWidth: 720, textAlign: "right" }}>
+              <SectionHeader number={5} label={data.label} h={data.h} accent={m.accent} textColor={m.text} align="right"/>
+              <Reveal delay={0.05}>
+                <p style={{
+                  fontSize: "1.15rem", color: m.text, opacity: 0.9, lineHeight: 1.7,
+                  maxWidth: 560, marginLeft: "auto",
+                }}>{data.body}</p>
+              </Reveal>
+            </div>
+
+            <Reveal delay={0.1}>
+              <p className="marker" style={{
+                color: m.accent, fontSize: "1.7rem", marginTop: "3rem", marginLeft: "8%",
+                transform: "rotate(-2deg)", display: "inline-block",
+              }}>✶ {data.galleryLabel}</p>
+            </Reveal>
+
+            {/* varied size irregular grid */}
+            <div style={{
+              marginTop: 24, position: "relative",
+              display: "grid", gridTemplateColumns: "repeat(12, 1fr)",
+              gap: 24, alignItems: "start",
+            }}>
+              {data.gallery.map((label, i) => {
+                const cfg = [
+                  { col: "2 / 7",  w: 440, rot: -3, src: "watercolor-1.jpg", ratio: "3 / 4" },
+                  { col: "7 / 12", w: 440, rot: 3,  src: "watercolor-2.jpg", ratio: "3 / 4" },
+                ][i] || { col: "auto", w: 320, rot: 0, src: undefined, ratio: "3 / 4" };
+                return (
+                  <div key={i} style={{ gridColumn: cfg.col, display: "flex", justifyContent: "center" }}>
+                    <Reveal delay={i * 0.08} from={i % 2 ? "tilt" : "tiltR"}>
+                      <TapedWatercolor label={label} hue={m.hue} accent={m.accent} rotate={cfg.rot} width={cfg.w} src={cfg.src} ratio={cfg.ratio}/>
+                    </Reveal>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+        </>
+      );
+    }
+
+    function TapedWatercolor({ rotate = -1, label, hue, accent, width = 220, src, ratio = "4 / 5" }) {
+      const [hover, setHover] = useState(false);
+      const [errored, setErrored] = useState(false);
+      const showImage = src && !errored;
+      return (
+        <div
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          onContextMenu={e => e.preventDefault()}
+          onDragStart={e => e.preventDefault()}
+          style={{
+            position: "relative", width,
+            transform: hover ? `rotate(${rotate * 0.4}deg) translateY(-6px)` : `rotate(${rotate}deg)`,
+            transition: "transform 0.5s cubic-bezier(.22,1,.36,1)",
+            userSelect: "none", WebkitUserSelect: "none",
+          }}>
+          <div style={{
+            position: "absolute", inset: -18, borderRadius: 14,
+            background: `radial-gradient(ellipse at center, ${hue}66 0%, ${hue}22 50%, transparent 70%)`,
+            filter: "blur(10px)", animation: "bleed 5s ease-in-out infinite",
+          }}/>
+          <div style={{
+            position: "relative", background: P.cream, padding: "18px 16px 42px",
+            boxShadow: hover ? "0 20px 40px rgba(0,0,0,0.4)" : "0 12px 24px rgba(0,0,0,0.3)",
+          }}>
+            <Tape width={84} color={P.pink} rotate={-42} style={{ position: "absolute", top: 4, left: -30, zIndex: 4 }}/>
+            <Tape width={84} color={P.yellow} rotate={42} style={{ position: "absolute", top: 4, right: -30, zIndex: 4 }}/>
+
+            <div style={{
+              width: "100%", aspectRatio: ratio,
+              background: showImage
+                ? "url(\"" + src + "\") center/cover " + hue
+                : "linear-gradient(135deg, " + hue + "33 0%, " + hue + " 100%)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              position: "relative", overflow: "hidden",
+              border: (src && errored) ? "2px dashed " + accent : "none",
+            }}>
+              {src && <img src={src} alt="" onError={() => setErrored(true)}
+                style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}/>}
+              {showImage && <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "transparent" }}
+                onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}/>}
+              {!showImage && (
+                <>
+                  <svg style={{ position: "absolute", inset: 0, opacity: 0.7 }} viewBox="0 0 200 250" preserveAspectRatio="none">
+                    <defs><filter id={`wcb-${label.length}-${rotate}`}><feGaussianBlur stdDeviation="6"/></filter></defs>
+                    <g filter={`url(#wcb-${label.length}-${rotate})`}>
+                      <circle cx="60" cy="80" r="36" fill={accent} opacity="0.55"/>
+                      <circle cx="148" cy="160" r="42" fill={hue} opacity="0.6"/>
+                      <circle cx="100" cy="200" r="26" fill="#fff" opacity="0.45"/>
+                    </g>
+                  </svg>
+                  {src && errored ? (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: 12, textAlign: "center", position: "relative", zIndex: 1 }}>
+                      <span className="marker" style={{ color: accent, fontSize: "1rem" }}>missing</span>
+                      <code style={{ background: accent, color: "#0a0a0a", padding: "2px 8px", fontSize: 10 }}>{src}</code>
+                    </div>
+                  ) : (
+                    <span className="handwritten" style={{
+                      color: P.tealDeep, fontSize: 18, opacity: 0.85, padding: "0 12px",
+                      position: "relative", zIndex: 1, textAlign: "center",
+                    }}>{label}</span>
+                  )}
+                </>
+              )}
+            </div>
+            <p className="handwritten" style={{
+              position: "absolute", bottom: 10, left: 16, right: 16,
+              textAlign: "center", color: P.tealDeep, fontSize: "1.15rem", fontWeight: 600,
+              opacity: 0.95, lineHeight: 1.15,
+            }}>{label}</p>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════ SCULPTURE ═══════════════ */
+    /* Simple lift-and-scale hover on the sculpture image. */
+    function SculpturePiece({ src, alt }) {
+      const [hover, setHover] = useState(false);
+      return (
+        <div
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          style={{
+            position: "relative", display: "flex", flexDirection: "column", alignItems: "center",
+          }}>
+          {/* soft spotlight glow behind the sculpture */}
+          <div style={{
+            position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)",
+            width: "85%", height: "80%",
+            background: "radial-gradient(ellipse at center, rgba(255, 240, 200, 0.22) 0%, transparent 70%)",
+            filter: "blur(28px)", animation: "pulseSpot 6s ease-in-out infinite",
+            pointerEvents: "none", zIndex: 0,
+          }}/>
+
+          <img src={src} alt={alt}
+            onContextMenu={e => e.preventDefault()}
+            onDragStart={e => e.preventDefault()}
+            style={{
+              width: "min(560px, 92%)", height: "auto", display: "block",
+              position: "relative", zIndex: 3,
+              filter: hover ? "drop-shadow(0 30px 36px rgba(0,0,0,0.7))" : "drop-shadow(0 18px 24px rgba(0,0,0,0.55))",
+              transform: hover ? "translateY(-10px) scale(1.04)" : "none",
+              transformOrigin: "center bottom",
+              transition: "transform 0.5s cubic-bezier(.22,1,.36,1), filter 0.5s",
+              userSelect: "none", WebkitUserSelect: "none", WebkitUserDrag: "none",
+              cursor: "pointer",
+            }}/>
+
+          <div style={{
+            width: "65%", height: 22,
+            background: "radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, transparent 70%)",
+            marginTop: -6, filter: "blur(10px)",
+          }}/>
+        </div>
+      );
+    }
+
+    function SculptureSection() {
+      const { T } = useContext(LangCtx);
+      const m = M.sculpture;
+      const data = T.sculpture;
+
+      return (
+        <>
+        <TornEdge from={M.graphite.bg} to={m.bg} height={70}/>
+        <section id="sculpture" style={{
+          position: "relative", padding: "5rem 0.9rem 8rem",
+          background: `linear-gradient(180deg, ${P.terra} 0%, ${P.terraDeep} 100%)`,
+          color: m.text, overflow: "hidden",
+        }}>
+          {/* gallery wall hint */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 25%, transparent 70%, rgba(0,0,0,0.3) 100%)",
+            pointerEvents: "none",
+          }}/>
+
+          <div style={{ position: "relative", maxWidth: 1500, margin: "0 auto" }}>
+            <div style={{ paddingLeft: "6%", maxWidth: 720 }}>
+              <SectionHeader number={4} label={data.label} h={data.h} accent={m.accent} textColor={m.text} align="left"/>
+              <Reveal delay={0.05}>
+                <p style={{
+                  fontSize: "1.15rem", color: m.text, opacity: 0.92, lineHeight: 1.65,
+                  maxWidth: 560,
+                }}>{data.body}</p>
+              </Reveal>
+            </div>
+
+            {/* description on the left and sculpture image on the right.
+               The image is anchored to the top of its grid row so it lands near the
+               top of the section and is visible on entry. */}
+            <div style={{
+              marginTop: "1.5rem",
+              display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem", alignItems: "start",
+            }}>
+              <div style={{ paddingLeft: "18%" }}>
+                <Reveal from="left" delay={0.1}>
+                  <Badge color={P.black} bg={m.accent} rotate={-12} size={100}>★<br/>description</Badge>
+                  <h3 className="anton" style={{
+                    fontSize: "clamp(2rem, 4vw, 2.8rem)",
+                    color: m.text, marginTop: 24, lineHeight: 1.05, letterSpacing: "-0.01em",
+                  }}>{data.featured.title}</h3>
+                  <p className="marker" style={{
+                    color: m.accent, fontSize: 17, marginTop: 8,
+                  }}>{data.featured.meta}</p>
+                  <p style={{
+                    color: m.text, opacity: 0.88, fontSize: "1.55rem",
+                    lineHeight: 1.55, marginTop: 16, maxWidth: 460,
+                    fontFamily: "'Caveat', cursive",
+                  }}>{data.featured.caption}</p>
+                  <a href={data.link} className="marker" style={{
+                    display: "inline-block", marginTop: 20, padding: "10px 20px",
+                    background: m.accent, color: P.black,
+                    textDecoration: "none", fontSize: "1.1rem",
+                    border: "3px solid " + P.black,
+                    boxShadow: "5px 5px 0 " + P.black,
+                    transform: "rotate(-1.5deg)",
+                    transition: "transform 0.2s, box-shadow 0.2s, background 0.25s",
+                  }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform = "rotate(-1.5deg) translate(-2px,-2px)";
+                      e.currentTarget.style.boxShadow = "7px 7px 0 " + P.black + ", inset 0 0 26px rgba(255,255,255,0.45)";
+                      e.currentTarget.style.background = "linear-gradient(135deg, " + m.accent + " 0%, " + P.cream + " 100%)";
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = "rotate(-1.5deg)";
+                      e.currentTarget.style.boxShadow = "5px 5px 0 " + P.black;
+                      e.currentTarget.style.background = m.accent;
+                    }}
+                  >{data.linkLabel}</a>
+                </Reveal>
+              </div>
+
+              <Reveal from="right" delay={0.15}>
+                <div style={{ marginTop: "-3rem" }}>
+                  <SculpturePiece src="sculpture-gemini.png" alt="Two Women sculpture"/>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+        </>
+      );
+    }
+
+    /* ═══════════════ MARKERS ═══════════════ */
+    function MarkersSection() {
+      const { T } = useContext(LangCtx);
+      const m = M.markers;
+      const data = T.markers;
+
+      return (
+        <>
+        <DiagonalCut from={M.watercolor.bg} to={m.bg} height={100} direction="right"/>
+        <section id="markers" style={{
+          position: "relative", padding: "5rem 0.9rem 7rem", background: m.bg,
+          color: m.text, overflow: "hidden",
+        }}>
+          {/* big pink halftone bg */}
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: `radial-gradient(circle, ${P.pink} 3px, transparent 3.5px)`,
+            backgroundSize: "14px 14px",
+            opacity: 0.35,
+          }}/>
+          {/* big marker scribbles */}
+          <svg viewBox="0 0 1200 700" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.55, pointerEvents: "none" }} preserveAspectRatio="xMidYMid slice">
+            <path d="M 60 100 Q 200 80, 320 110 T 580 90 T 900 130 T 1140 100" stroke={P.lime} strokeWidth="16" fill="none" strokeLinecap="round"/>
+            <path d="M 60 580 Q 220 600, 380 570 T 700 590 T 1140 560" stroke={P.cyan} strokeWidth="16" fill="none" strokeLinecap="round"/>
+            <circle cx="1080" cy="320" r="80" fill={P.yellow} opacity="0.45"/>
+            <circle cx="120" cy="380" r="60" fill={P.lime} opacity="0.55"/>
+          </svg>
+
+          <div style={{ position: "relative", maxWidth: 1500, margin: "0 auto" }}>
+            <div style={{ paddingLeft: "3%", maxWidth: 760 }}>
+              <SectionHeader number={6} label={data.label} h={data.h} accent={P.lime} textColor={P.yellow} align="left"/>
+              <Reveal delay={0.05}>
+                <p style={{
+                  fontSize: "1.15rem", color: P.cream, lineHeight: 1.65,
+                  maxWidth: 580,
+                }}>{data.body}</p>
+              </Reveal>
+            </div>
+
+            <Reveal delay={0.1}>
+              <p className="marker" style={{
+                color: P.lime, fontSize: "1.8rem", marginTop: "3rem", marginLeft: "10%",
+                transform: "rotate(-2deg)", display: "inline-block",
+              }}>★ {data.galleryLabel}</p>
+            </Reveal>
+
+            {/* irregular grid: bigger and smaller */}
+            <div style={{
+              marginTop: 24,
+              display: "grid", gridTemplateColumns: "repeat(12, 1fr)",
+              gap: 24, gridAutoRows: "minmax(200px, auto)",
+            }}>
+              {data.gallery.map((label, i) => {
+                /* Row 1: three verticals (charcoal, colored pencils, crayon). Row 2: two horizontals (chinese ink, fineliner). */
+                const cfg = [
+                  { col: "1 / 5",  rot: -3, src: "drawing-charcoal.jpg",        ratio: "3 / 4" },
+                  { col: "5 / 9",  rot: 2,  src: "drawing-colored-pencils.jpg", ratio: "3 / 4" },
+                  { col: "9 / 13", rot: -2, src: "drawing-crayon.jpg",          ratio: "3 / 4" },
+                  { col: "1 / 7",  rot: 1,  src: "drawing-chinese-ink.jpg",     ratio: "4 / 3" },
+                  { col: "7 / 13", rot: -1, src: "drawing-fine-line.jpg",       ratio: "4 / 3" },
+                ][i] || { col: "auto", rot: 0, src: undefined, ratio: "3 / 4" };
+                return (
+                  <div key={i} style={{ gridColumn: cfg.col }}>
+                    <Reveal delay={i * 0.08} from="scale">
+                      <MarkerFrame label={label} colorIndex={i} rot={cfg.rot} src={cfg.src} ratio={cfg.ratio}/>
+                    </Reveal>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+        </>
+      );
+    }
+
+    function MarkerFrame({ label, colorIndex, rot = 0, src, ratio = "3 / 4" }) {
+      const colors = [P.pink, P.lime, P.cyan, P.yellow];
+      const color = colors[colorIndex % colors.length];
+      const [hover, setHover] = useState(false);
+      const [errored, setErrored] = useState(false);
+      const showImage = src && !errored;
+      return (
+        <div
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          onContextMenu={e => e.preventDefault()}
+          onDragStart={e => e.preventDefault()}
+          style={{
+            position: "relative", background: P.cream, padding: 18,
+            transform: hover ? "rotate(0deg) translateY(-6px)" : `rotate(${rot}deg)`,
+            transition: "transform 0.5s cubic-bezier(.22,1,.36,1)",
+            boxShadow: `8px 8px 0 ${color}`,
+            border: `3px solid ${P.black}`,
+            userSelect: "none", WebkitUserSelect: "none",
+          }}>
+          <div style={{
+            position: "relative", aspectRatio: ratio,
+            background: showImage
+              ? "url(\"" + src + "\") center/cover " + color
+              : "linear-gradient(135deg, " + color + "33 0%, " + color + " 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            overflow: "hidden", border: `2px solid ${P.black}`,
+          }}>
+            {src && <img src={src} alt="" onError={() => setErrored(true)}
+              style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}/>}
+            {showImage && <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "transparent" }}
+              onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}/>}
+            {!showImage && (
+              <>
+                <svg style={{ position: "absolute", inset: 0, opacity: 0.4 }} viewBox="0 0 100 130" preserveAspectRatio="none">
+                  <defs>
+                    <pattern id={`hatch-${colorIndex}`} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                      <line x1="0" y1="0" x2="0" y2="8" stroke={P.black} strokeWidth="1.2"/>
+                    </pattern>
+                  </defs>
+                  <rect width="100" height="130" fill={`url(#hatch-${colorIndex})`}/>
+                </svg>
+                {src && errored ? (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: 12, textAlign: "center", position: "relative", zIndex: 1 }}>
+                    <span className="marker" style={{ color: P.black, fontSize: "1.1rem" }}>missing</span>
+                    <code style={{ background: P.black, color: color, padding: "2px 8px", fontSize: 10 }}>{src}</code>
+                  </div>
+                ) : (
+                  <span className="marker" style={{
+                    color: P.black, fontSize: 24, textAlign: "center", padding: "0 12px",
+                    position: "relative", zIndex: 1,
+                    textShadow: `2px 2px 0 ${P.cream}`,
+                  }}>{label}</span>
+                )}
+              </>
+            )}
+          </div>
+          <p className="marker" style={{
+            marginTop: 10, color: P.black, fontSize: "1.15rem", lineHeight: 1.15,
+            textAlign: "center", letterSpacing: "0.03em", fontWeight: 600,
+          }}>{label}</p>
+        </div>
+      );
+    }
+
+    /* ═══════════════ COLLAGES ═══════════════ */
+    function CollagesSection() {
+      const { T } = useContext(LangCtx);
+      const m = M.collages;
+      const data = T.collages;
+
+      return (
+        <>
+        <HalftoneEdge from={M.markers.bg} to={m.bg} color={P.lime}/>
+        <section id="collages" style={{
+          position: "relative", padding: "5rem 0.9rem 7rem",
+          background: `linear-gradient(135deg, ${P.magentaDeep} 0%, ${P.magenta} 50%, ${P.pinkDeep} 100%)`,
+          color: m.text, overflow: "hidden",
+        }}>
+          {/* scattered scrap shapes */}
+          <div style={{ position: "absolute", top: 70, left: 50, width: 90, height: 110, background: P.yellow, opacity: 0.22, transform: "rotate(-12deg)" }}/>
+          <div style={{ position: "absolute", top: 210, right: 70, width: 130, height: 80, background: P.cyan, opacity: 0.2, transform: "rotate(8deg)" }}/>
+          <div style={{ position: "absolute", bottom: 120, left: 100, width: 100, height: 130, background: P.lime, opacity: 0.18, transform: "rotate(15deg)" }}/>
+          <div style={{ position: "absolute", bottom: 280, right: 120, width: 80, height: 100, background: P.orange, opacity: 0.22, transform: "rotate(-6deg)" }}/>
+
+          <div style={{ position: "relative", maxWidth: 1500, margin: "0 auto" }}>
+            <div style={{ paddingRight: "4%", marginLeft: "auto", maxWidth: 740, textAlign: "right" }}>
+              <SectionHeader number={7} label={data.label} h={data.h} accent={m.accent} textColor={m.text} align="right"/>
+              <Reveal delay={0.05}>
+                <p style={{
+                  fontSize: "1.15rem", color: m.text, opacity: 0.92, lineHeight: 1.65,
+                  maxWidth: 580, marginLeft: "auto",
+                }}>{data.body}</p>
+              </Reveal>
+            </div>
+
+            <Reveal delay={0.1}>
+              <p className="marker" style={{
+                color: m.accent, fontSize: "1.9rem", marginTop: "3rem", marginLeft: "8%",
+                transform: "rotate(-2deg)", display: "inline-block",
+              }}>✶ {data.galleryLabel}</p>
+            </Reveal>
+
+            <div style={{
+              marginTop: 30,
+              display: "grid", gridTemplateColumns: "repeat(12, 1fr)",
+              gap: 28, gridAutoRows: "minmax(280px, auto)",
+            }}>
+              {data.gallery.map((label, i) => {
+                const cfg = [
+                  { col: "1 / 6", rot: -2 },
+                  { col: "7 / 13", rot: 2 },
+                  { col: "2 / 8", rot: 1 },
+                  { col: "8 / 13", rot: -3 },
+                ][i] || { col: "auto", rot: 0 };
+                return (
+                  <div key={i} style={{ gridColumn: cfg.col }}>
+                    <Reveal delay={i * 0.1} from={i % 2 ? "tilt" : "tiltR"}>
+                      <CollagePiece label={label} index={i} rot={cfg.rot}/>
+                    </Reveal>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+        </>
+      );
+    }
+
+    function CollagePiece({ label, index, rot = 0 }) {
+      const [hover, setHover] = useState(false);
+      const palettes = [
+        [P.yellow, P.cream, P.pink, P.cyan],
+        [P.lime, P.cream, P.magenta, P.yellow],
+        [P.orange, P.cream, P.cyan, P.yellow],
+        [P.cream, P.pink, P.lime, P.yellow],
+      ][index % 4];
+
+      const texturePattern = (id, color) => (
+        <defs>
+          <pattern id={`tex-l-${id}`} width="10" height="10" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="5" x2="10" y2="5" stroke={color} strokeWidth="0.6" opacity="0.5"/>
+          </pattern>
+          <pattern id={`tex-g-${id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+            <path d="M 8 0 L 0 0 0 8" fill="none" stroke={color} strokeWidth="0.5" opacity="0.55"/>
+          </pattern>
+          <pattern id={`tex-d-${id}`} width="6" height="6" patternUnits="userSpaceOnUse">
+            <circle cx="3" cy="3" r="0.8" fill={color} opacity="0.55"/>
+          </pattern>
+        </defs>
+      );
+
+      return (
+        <div
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          style={{
+            position: "relative", aspectRatio: "4 / 5",
+            transform: hover ? "rotate(0deg) translateY(-8px) scale(1.02)" : `rotate(${rot}deg)`,
+            transition: "transform 0.5s cubic-bezier(.22,1,.36,1)",
+            filter: hover ? "drop-shadow(0 22px 32px rgba(0,0,0,0.55))" : "drop-shadow(0 12px 22px rgba(0,0,0,0.4))",
+          }}>
+          <svg viewBox="0 0 300 380" style={{ width: "100%", height: "100%", display: "block" }}>
+            {texturePattern(index, P.black)}
+            <polygon points="20,30 280,15 290,360 10,355" fill={palettes[0]}/>
+            <rect x="20" y="30" width="270" height="330" fill={`url(#tex-l-${index})`} opacity="0.7"/>
+            <polygon points="60,90 240,70 260,260 40,240" fill={palettes[1]} opacity="0.95" transform="rotate(-3 150 165)"/>
+            <rect x="60" y="90" width="180" height="170" fill={`url(#tex-g-${index})`} transform="rotate(-3 150 175)" opacity="0.5"/>
+            <path d="M 200 40 L 280 50 L 270 110 L 195 100 Q 190 70, 200 40 Z" fill={palettes[2]} transform="rotate(8 230 75)"/>
+            <rect x="40" y="240" width="100" height="100" fill={palettes[3]} transform="rotate(5 90 290)"/>
+            <rect x="40" y="240" width="100" height="100" fill={`url(#tex-d-${index})`} transform="rotate(5 90 290)"/>
+            <g transform="rotate(-4 200 300)">
+              <rect x="160" y="270" width="110" height="60" fill={P.black} opacity="0.9"/>
+              <line x1="172" y1="282" x2="258" y2="282" stroke={P.cream} strokeWidth="1.5"/>
+              <line x1="172" y1="292" x2="250" y2="292" stroke={P.cream} strokeWidth="1.5"/>
+              <line x1="172" y1="302" x2="258" y2="302" stroke={P.cream} strokeWidth="1.5"/>
+              <line x1="172" y1="312" x2="240" y2="312" stroke={P.cream} strokeWidth="1.5"/>
+            </g>
+            <path d="M 80 70 L 86 82 L 100 84 L 90 92 L 92 106 L 80 100 L 68 106 L 70 92 L 60 84 L 74 82 Z" fill={P.yellow}/>
+            <rect x="180" y="180" width="80" height="14" fill={P.cyan} opacity="0.85" transform="rotate(20 220 187)"/>
+          </svg>
+          <p className="marker" style={{
+            position: "absolute", bottom: 10, left: 0, right: 0, textAlign: "center",
+            color: P.cream, fontSize: "1.15rem", fontWeight: 600,
+            textShadow: "2px 2px 4px rgba(0,0,0,0.6)", lineHeight: 1.15,
+          }}>{label}</p>
+        </div>
+      );
+    }
+
+    /* ═══════════════ PHOTOGRAPHY ═══════════════ */
+    function PhotoSection() {
+      const { T } = useContext(LangCtx);
+      const m = M.photo;
+      const data = T.photo;
+
+      return (
+        <>
+        <DiagonalCut from={P.black} to={m.bg} height={100} direction="left"/>
+        <section id="photo" style={{
+          position: "relative", padding: "5rem 0.9rem 7rem",
+          background: `linear-gradient(180deg, ${P.plum} 0%, ${P.plumDeep} 100%)`,
+          color: m.text, overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute", top: 80, left: 0, right: 0, height: 2,
+            background: `linear-gradient(90deg, transparent 0%, ${m.accent}66 20%, ${m.accent}66 80%, transparent 100%)`,
+          }}/>
+
+          <div style={{ position: "relative", maxWidth: 1500, margin: "0 auto" }}>
+            <div style={{ paddingLeft: "6%", maxWidth: 720 }}>
+              <SectionHeader number={2} label={data.label} h={data.h} accent={m.accent} textColor={m.text} align="left"/>
+              <Reveal delay={0.05}>
+                <p style={{
+                  fontSize: "1.15rem", color: m.text, opacity: 0.88, lineHeight: 1.65,
+                  maxWidth: 560,
+                }}>{data.body}</p>
+              </Reveal>
+            </div>
+
+            <Reveal delay={0.1}>
+              <p className="marker" style={{
+                color: m.accent, fontSize: "1.7rem", marginTop: "3rem", marginLeft: "12%",
+                transform: "rotate(-1.5deg)", display: "inline-block",
+              }}>✶ {data.galleryLabel}</p>
+            </Reveal>
+
+            {/* gallery wall: varied heights and sizes */}
+            <div style={{
+              marginTop: 30,
+              display: "grid", gridTemplateColumns: "repeat(12, 1fr)",
+              gap: 32, alignItems: "start",
+            }}>
+              {data.gallery.map((label, i) => {
+                /* 5 photos: 3 verticals on top row, then 1 horizontal + 1 vertical on the bottom. */
+                const cfg = [
+                  /* row 1: three verticals aligned at the same baseline so they read as a row */
+                  { col: "1 / 5",  top: 0, ratio: "3 / 4", src: "photo-tree.jpg" },     /* V */
+                  { col: "5 / 9",  top: 0, ratio: "3 / 4", src: "pavlova.jpg" },        /* V */
+                  { col: "9 / 13", top: 0, ratio: "3 / 4", src: "photo-coast.jpg" },    /* V */
+                  /* row 2: a wide horizontal and a vertical */
+                  { col: "1 / 9",  top: 0, ratio: "4 / 3", src: "photo-shutters.jpg" }, /* H */
+                  { col: "9 / 13", top: 0, ratio: "3 / 4", src: "photo-volcanic.jpg" }, /* V */
+                ][i] || { col: "auto", top: 0, ratio: "3 / 4", src: undefined };
+                return (
+                  <div key={i} style={{ gridColumn: cfg.col, paddingTop: cfg.top }}>
+                    <Reveal delay={i * 0.08}>
+                      <HungPhoto label={label} index={i} accent={m.accent} ratio={cfg.ratio} src={cfg.src}/>
+                    </Reveal>
+                  </div>
+                );
+              })}
+            </div>
+
+            <Reveal delay={0.2}>
+              <div style={{ textAlign: "center", marginTop: "4rem" }}>
+                <a href="photography.html" className="marker" style={{
+                  display: "inline-block", fontSize: "1.4rem", color: P.cream,
+                  textDecoration: "none", padding: "12px 26px",
+                  background: m.bg, border: "3px solid " + m.accent,
+                  boxShadow: "6px 6px 0 " + m.accent,
+                  transition: "transform 0.25s, box-shadow 0.25s, background 0.25s",
+                }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = "translate(-3px,-3px)";
+                    e.currentTarget.style.boxShadow = "9px 9px 0 " + m.accent + ", inset 0 0 30px " + m.accent + "aa";
+                    e.currentTarget.style.background = "linear-gradient(135deg, " + m.bg + " 0%, " + m.accent + "55 100%)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = "none";
+                    e.currentTarget.style.boxShadow = "6px 6px 0 " + m.accent;
+                    e.currentTarget.style.background = m.bg;
+                  }}
+                >{data.seeAll}</a>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+        </>
+      );
+    }
+
+    function HungPhoto({ label, index, accent, size = "medium", ratio, src }) {
+      const [hover, setHover] = useState(false);
+      const [errored, setErrored] = useState(false);
+      const styles = [
+        { frame: "linear-gradient(135deg, #6b4a2a 0%, #3a2814 100%)", inner: "#1a0e08", tint: "sepia(0.5) contrast(1.05)" },
+        { frame: "linear-gradient(135deg, #f3e2b8 0%, #c8a558 100%)", inner: "#1a1208", tint: "none" },
+        { frame: "linear-gradient(135deg, #d4a548 0%, #9b7228 100%)", inner: "#1a1208", tint: "sepia(0.3)" },
+        { frame: "linear-gradient(135deg, #5a3a2a 0%, #2a1810 100%)", inner: "#100a06", tint: "sepia(0.6)" },
+      ];
+      const style = styles[index % styles.length];
+      const sizes = { small: { ratio: "4 / 5", padding: 10 }, medium: { ratio: "1 / 1.2", padding: 12 }, large: { ratio: "3 / 4", padding: 16 } };
+      /* If an explicit ratio is passed, it overrides the size preset so the frame matches the actual photo orientation. */
+      if (ratio) sizes[size] = { ...sizes[size], ratio };
+      const sz = sizes[size];
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+          <svg width="20" height="14" style={{ marginBottom: -2 }}>
+            <polygon points="10,0 4,8 16,8" fill={accent}/>
+          </svg>
+          <svg width="80" height="22" style={{ marginBottom: -10 }} viewBox="0 0 80 22">
+            <path d="M 40 2 L 4 20 M 40 2 L 76 20" stroke={accent} strokeWidth="1" opacity="0.5"/>
+          </svg>
+          <div
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            style={{
+              background: style.frame, padding: sz.padding,
+              boxShadow: hover
+                ? "0 22px 42px rgba(0,0,0,0.75), inset 0 1px 2px rgba(255,255,255,0.2)"
+                : "0 14px 26px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.15)",
+              transition: "transform 0.4s, box-shadow 0.4s",
+              transform: hover ? "translateY(-4px) rotate(-0.5deg)" : "none",
+              width: "100%",
+            }}>
+            <div style={{
+              background: style.inner, padding: 8,
+              boxShadow: "inset 0 2px 6px rgba(0,0,0,0.7)",
+            }}>
+              <div
+                onContextMenu={e => e.preventDefault()}
+                onDragStart={e => e.preventDefault()}
+                style={{
+                aspectRatio: sz.ratio,
+                background: (src && !errored)
+                  ? "url(\"" + src + "\") center/cover"
+                  : "linear-gradient(135deg, #3a2a30 0%, #1a1014 100%)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                filter: (src && !errored) ? "none" : style.tint, position: "relative", overflow: "hidden",
+                userSelect: "none", WebkitUserSelect: "none", WebkitUserDrag: "none",
+                border: (src && errored) ? "2px dashed " + accent : "none",
+              }}>
+                {/* hidden img used to detect onError */}
+                {src && <img src={src} alt="" onError={() => setErrored(true)}
+                  style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}/>}
+                {/* invisible overlay that intercepts right-click/drag on photo */}
+                {src && !errored && <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "transparent" }}
+                  onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}/>}
+                {src && errored && (
+                  <div style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    gap: 8, padding: 14, textAlign: "center", position: "relative", zIndex: 1,
+                  }}>
+                    <span className="marker" style={{ color: accent, fontSize: "1.05rem", lineHeight: 1.1 }}>missing file</span>
+                    <code style={{ background: accent, color: "#0a0a0a", padding: "3px 10px", fontSize: 11, letterSpacing: "0.05em" }}>{src}</code>
+                    <span style={{ color: "rgba(255,240,200,0.5)", fontSize: 11, fontStyle: "italic" }}>save here to appear</span>
+                  </div>
+                )}
+                {!src && (<>
+                <div style={{
+                  position: "absolute", inset: 0,
+                  backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E\")",
+                  opacity: 0.4, mixBlendMode: "overlay",
+                }}/>
+                <span style={{
+                  color: "rgba(255,240,200,0.5)", fontSize: 14, fontStyle: "italic",
+                  fontFamily: "'Cormorant Garamond', serif", position: "relative", zIndex: 1,
+                  letterSpacing: "0.05em", textAlign: "center", padding: "0 12px",
+                }}>{label}</span>
+                </>)}
+
+                {/* bottom-left caption overlay (matches photography.html style) */}
+                {src && !errored && (
+                  <>
+                    <div style={{
+                      position: "absolute", inset: 0,
+                      background: "linear-gradient(0deg, rgba(0,0,0,0.65) 0%, transparent 40%)",
+                      opacity: hover ? 1 : 0.65,
+                      transition: "opacity 0.3s",
+                      pointerEvents: "none", zIndex: 2,
+                    }}/>
+                    <figcaption style={{
+                      position: "absolute", left: 14, right: 14, bottom: 12,
+                      color: "#faf3df", fontFamily: "'Cormorant Garamond', serif",
+                      fontStyle: "italic", fontSize: "1.1rem", letterSpacing: "0.04em",
+                      textShadow: "0 2px 10px rgba(0,0,0,0.85)",
+                      transform: hover ? "translateY(0)" : "translateY(2px)",
+                      transition: "transform 0.3s",
+                      zIndex: 3,
+                    }}>{label}</figcaption>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════ FILM ═══════════════ */
+    /* YouTube short films, in Constanza's chosen order. First two are her favourites.
+       Titles and synopses are her own, taken from each video's YouTube description. */
+    const FILMS = [
+      { id: "_baKIJNfnOM", favorite: true,
+        en: { title: "Virtri",
+              synopsis: "Three shades of myself: impermanence, nostalgia, and wanderlust. A symbolic short on how living across countries and cultures shaped the way I see the world." },
+        es: { title: "Virtri",
+              synopsis: "Tres sombras de mí: impermanencia, nostalgia, y wanderlust. Un corto simbólico sobre cómo vivir en distintos países y culturas le dio forma a mi manera de ver el mundo." } },
+      { id: "aEmKlGfgOxs", favorite: true,
+        en: { title: "SATURATEd",
+              synopsis: "A mixed-media short on overconsumption and energy waste. I blended live action with digital animation, hand-drawn animation, still images, and screen recordings. Made under a tight finals-week deadline." },
+        es: { title: "SATURATEd",
+              synopsis: "Un corto en técnica mixta sobre el sobreconsumo y el derroche de energía. Mezclé imagen real con animación digital, animación tradicional a mano, imágenes fijas, y grabaciones de pantalla. Hecho a contrarreloj en semana de exámenes finales." } },
+      { id: "fjKRawai8yg",
+        en: { title: "Veranito",
+              synopsis: "Summer days as they really are: friends, sea, laughter, and moments that turn into memories. Everyday scenes set to Me Fui de Vacaciones, holding the freedom, joy, and slight nostalgia of a season that always goes by too fast." },
+        es: { title: "Veranito",
+              synopsis: "Los días de verano como son: amigos, mar, risas, y momentos compartidos que terminan siendo recuerdos. Escenas cotidianas sobre Me Fui de Vacaciones, sosteniendo la libertad, la alegría, y la nostalgia de una temporada que siempre pasa demasiado rápido." } },
+      { id: "fnvbcAYN_eU",
+        en: { title: "Cowboy Bebop",
+              synopsis: "Whatever happens, happens. A recreation of one of the most well known scenes from Cowboy Bebop, made for my philosophy class. There are a few bloopers at the end, just for fun." },
+        es: { title: "Cowboy Bebop",
+              synopsis: "Whatever happens, happens. Una recreación de una de las escenas más conocidas de Cowboy Bebop, hecha para mi clase de filosofía. Hay un par de bloopers al final, sólo por las risas." } },
+      { id: "4g3zvSi9oKY",
+        en: { title: "Primera mirada",
+              synopsis: "A short film about the look of love. Inspired by Makoto Shinkai's Your Name, two people meet and fall for each other at first sight." },
+        es: { title: "Primera mirada",
+              synopsis: "Un corto sobre la mirada del amor. Inspirado en Your Name de Makoto Shinkai, dos personas se conocen y se enamoran a primera vista." } },
+      { id: "UcriJaVe4cQ",
+        en: { title: "Última mirada",
+              synopsis: "A continuation of Primera mirada. The last look a couple shares before they go their separate ways." },
+        es: { title: "Última mirada",
+              synopsis: "Una continuación de Primera mirada. La última mirada que comparte una pareja antes de seguir caminos separados." } },
+      { id: "H60CuPCnO30",
+        en: { title: "4🌙",
+              synopsis: "A surreal live-action short that reimagines Fortnite outside the screen. Gameplay-inspired battles meet original cinematic sequences, channeling the energy and chaos of a match while opening up moments that only exist here." },
+        es: { title: "4🌙",
+              synopsis: "Un corto en imagen real con tono surrealista que reimagina Fortnite fuera de la pantalla. Combates inspirados en el juego se cruzan con secuencias cinematográficas propias, capturando la energía y el caos de una partida y abriendo momentos que sólo existen acá." } },
+      { id: "0jZBTVD2MFs",
+        en: { title: "Institeca",
+              synopsis: "An experiment with sound. The story is told without showing it directly: noises, music, voices, and silences, leaving the image to your imagination." },
+        es: { title: "Institeca",
+              synopsis: "Un experimento con el sonido. La historia se cuenta sin mostrarla directamente: ruidos, música, voces, y silencios, dejándole la imagen a tu imaginación." } },
+    ];
+
+    function FilmSection() {
+      const { T, lang } = useContext(LangCtx);
+      const data = T.film;
+
+      return (
+        <>
+        <TornEdge from={P.yellow} to={P.black} height={70}/>
+        <section id="film" style={{
+          position: "relative", background: P.black,
+          padding: "5rem 0.9rem 7rem", color: P.cream, overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.0' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E")`,
+            opacity: 0.35, mixBlendMode: "overlay", pointerEvents: "none",
+          }}/>
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "radial-gradient(ellipse at center, transparent 30%, #000 100%)",
+            opacity: 0.5, animation: "flicker 6s ease-in-out infinite", pointerEvents: "none",
+          }}/>
+
+          <div style={{ position: "relative", maxWidth: 1500, margin: "0 auto" }}>
+            <div style={{ paddingRight: "4%", marginLeft: "auto", maxWidth: 740, textAlign: "right" }}>
+              <SectionHeader number={1} label={data.label} h={data.h} accent={P.orange} textColor={P.cream} align="right"/>
+              <Reveal delay={0.05}>
+                <p style={{
+                  fontSize: "1.2rem", color: "#c5b896", lineHeight: 1.7,
+                  maxWidth: 580, marginLeft: "auto",
+                }}>{data.body}</p>
+              </Reveal>
+            </div>
+
+            <Reveal delay={0.15}>
+              <p className="marker" style={{
+                color: P.orange, fontSize: "1.5rem", marginTop: "3rem", marginLeft: "10%",
+                opacity: 0.95, transform: "rotate(-1deg)", display: "inline-block",
+              }}>◐ {data.watchLabel || (lang === "es" ? "ver en YouTube" : "watch on YouTube")}</p>
+            </Reveal>
+
+            {/* clickable grid of all 8 films */}
+            <div style={{
+              marginTop: "2rem",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 24,
+              maxWidth: 1400, marginLeft: "auto", marginRight: "auto",
+            }}>
+              {FILMS.map((f, i) => (
+                <Reveal key={f.id} delay={(i % 4) * 0.05} from="bottom">
+                  <FilmFrame film={f} lang={lang}/>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+        </>
+      );
+    }
+
+    function FilmFrame({ film, lang }) {
+      const [hover, setHover] = useState(false);
+      const data = film[lang] || film.en;
+      const title = data.title;
+      const synopsis = data.synopsis;
+      const thumb = "https://img.youtube.com/vi/" + film.id + "/hqdefault.jpg";
+      return (
+        <a
+          href={"https://www.youtube.com/watch?v=" + film.id}
+          target="_blank" rel="noreferrer"
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          style={{
+            display: "block", textDecoration: "none",
+            background: "#1a1410", position: "relative",
+            border: "1px solid #0a0a0a",
+            padding: "16px 6px 12px",
+            transform: hover ? "translateY(-4px)" : "none",
+            transition: "transform 0.4s",
+            boxShadow: hover ? "0 18px 36px rgba(0,0,0,0.7)" : "0 8px 20px rgba(0,0,0,0.5)",
+          }}>
+          {/* sprocket holes top */}
+          <div style={{ position: "absolute", top: 4, left: 0, right: 0, display: "flex", justifyContent: "space-between", padding: "0 12px" }}>
+            {[...Array(5)].map((_, k) => <div key={k} style={{ width: 10, height: 8, background: "#070707", borderRadius: 2 }}/>)}
+          </div>
+          {/* sprocket holes bottom */}
+          <div style={{ position: "absolute", bottom: 4, left: 0, right: 0, display: "flex", justifyContent: "space-between", padding: "0 12px" }}>
+            {[...Array(5)].map((_, k) => <div key={k} style={{ width: 10, height: 8, background: "#070707", borderRadius: 2 }}/>)}
+          </div>
+
+          {/* thumbnail frame */}
+          <div style={{
+            position: "relative", aspectRatio: "16 / 9",
+            background: "url(\"" + thumb + "\") center/cover #2a2520",
+            overflow: "hidden",
+          }}>
+            {/* base scrim — always shows from bottom so the title area stays readable */}
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(0deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 60%, transparent 100%)",
+              pointerEvents: "none",
+            }}/>
+
+            {/* play triangle, always centered, brightens on hover */}
+            <div style={{
+              position: "absolute", inset: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              pointerEvents: "none",
+            }}>
+              <svg width="60" height="60" viewBox="0 0 60 60" style={{
+                opacity: hover ? 0.35 : 0.9,
+                transform: hover ? "scale(0.85)" : "scale(1)",
+                transition: "transform 0.3s, opacity 0.3s",
+                filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.6))",
+              }}>
+                <circle cx="30" cy="30" r="28" fill="rgba(0,0,0,0.55)" stroke={P.orange} strokeWidth="2"/>
+                <polygon points="24,18 44,30 24,42" fill={P.orange}/>
+              </svg>
+            </div>
+
+            {/* synopsis overlay, fades in on hover, covers thumbnail */}
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(0deg, rgba(10,5,5,0.96) 0%, rgba(10,5,5,0.92) 60%, rgba(10,5,5,0.75) 100%)",
+              padding: "1rem 1.1rem",
+              display: "flex", flexDirection: "column", justifyContent: "center",
+              opacity: hover ? 1 : 0,
+              transition: "opacity 0.3s ease",
+              pointerEvents: "none",
+            }}>
+              <p style={{
+                color: P.orange, fontSize: 11, letterSpacing: "0.18em",
+                fontFamily: "'Anton', sans-serif", marginBottom: 8,
+              }}>SYNOPSIS</p>
+              <p className="serif" style={{
+                color: P.cream, fontSize: 14, lineHeight: 1.55,
+                fontStyle: "italic",
+              }}>{synopsis}</p>
+            </div>
+
+            {/* favourite badge */}
+            {film.favorite && (
+              <div style={{
+                position: "absolute", top: 12, left: 12, zIndex: 3,
+                background: P.orange, color: P.black,
+                fontFamily: "'Permanent Marker', cursive",
+                fontSize: 12, padding: "3px 10px",
+                letterSpacing: "0.08em",
+                transform: "rotate(-3deg)",
+                boxShadow: "3px 3px 0 rgba(0,0,0,0.6)",
+              }}>★ favorite</div>
+            )}
+          </div>
+
+          <p className="handwritten" style={{
+            color: hover ? P.orange : "#d4c096",
+            fontSize: 17, textAlign: "center", marginTop: 10,
+            letterSpacing: "0.04em",
+            transition: "color 0.2s",
+          }}>{title}</p>
+        </a>
+      );
+    }
+
+    function _UnusedOldFilmFrame({ title }) {
+      return (
+        <div style={{
+          flexShrink: 0, padding: "18px 6px", background: "#1a1410",
+          position: "relative", border: "1px solid #0a0a0a",
+        }}>
+          <div style={{ position: "absolute", top: 4, left: 0, right: 0, display: "flex", justifyContent: "space-between", padding: "0 12px" }}>
+            {[...Array(4)].map((_, k) => <div key={k} style={{ width: 10, height: 8, background: "#070707", borderRadius: 2 }}/>)}
+          </div>
+          <div style={{ position: "absolute", bottom: 4, left: 0, right: 0, display: "flex", justifyContent: "space-between", padding: "0 12px" }}>
+            {[...Array(4)].map((_, k) => <div key={k} style={{ width: 10, height: 8, background: "#070707", borderRadius: 2 }}/>)}
+          </div>
+          <div style={{
+            width: 240, aspectRatio: "16 / 11",
+            background: "linear-gradient(135deg, #2a2520 0%, #0a0908 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            position: "relative", overflow: "hidden",
+          }}>
+            <svg width="44" height="44" viewBox="0 0 40 40" style={{ opacity: 0.5 }}>
+              <polygon points="14,10 32,20 14,30" fill={P.orange}/>
+            </svg>
+            <p className="handwritten" style={{
+              position: "absolute", bottom: 4, left: 0, right: 0, textAlign: "center",
+              color: P.cream, fontSize: 13, opacity: 0.85,
+            }}>{title}</p>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════ DANCE ═══════════════ */
+    function DanceSection() {
+      const { T } = useContext(LangCtx);
+      const m = M.dance;
+      const data = T.dance;
+
+      return (
+        <>
+        <TornEdge from={M.collages.bg} to={"#5e1f5e"} height={70}/>
+        <section id="dance" style={{
+          position: "relative", padding: "5rem 0.9rem 7rem",
+          background: "linear-gradient(135deg, #5e1f5e 0%, #d92b9b 40%, #ff5a1f 100%)",
+          color: m.text, overflow: "hidden",
+        }}>
+          <svg viewBox="0 0 1200 600" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.55, pointerEvents: "none" }} preserveAspectRatio="xMidYMid slice">
+            <defs><filter id="d-goo"><feGaussianBlur stdDeviation="60"/></filter></defs>
+            <g filter="url(#d-goo)" style={{ animation: "drift 20s ease-in-out infinite" }}>
+              <circle cx="200" cy="200" r="220" fill={P.yellow}/>
+              <circle cx="800" cy="380" r="260" fill={P.cyan}/>
+              <circle cx="540" cy="500" r="200" fill={P.magentaDeep}/>
+            </g>
+          </svg>
+
+          <svg viewBox="0 0 1200 600" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} preserveAspectRatio="xMidYMid slice">
+            <path d="M 100 300 Q 400 100, 700 300 T 1200 250" fill="none" stroke={P.yellow} strokeWidth="2.5" opacity="0.6" strokeDasharray="6 12" style={{ animation: "drift 14s ease-in-out infinite" }}/>
+            <path d="M 0 400 Q 300 200, 600 400 T 1200 380" fill="none" stroke={P.cream} strokeWidth="2" opacity="0.4" strokeDasharray="3 9" style={{ animation: "drift 18s ease-in-out infinite reverse" }}/>
+          </svg>
+
+          <div style={{ position: "relative", maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
+            <SectionHeader number={8} label={data.label} h={data.h} accent={P.yellow} textColor={m.text} align="left"/>
+            <Reveal delay={0.1}>
+              <p style={{
+                fontSize: "1.25rem", color: m.text, lineHeight: 1.85,
+                fontStyle: "italic", maxWidth: 620, margin: "0 auto",
+              }}>{data.body}</p>
+            </Reveal>
+
+            <div style={{ marginTop: "3rem", display: "flex", justifyContent: "center" }}>
+              <svg width="110" height="110" viewBox="0 0 110 110" style={{ animation: "spinSlow 30s linear infinite" }}>
+                <circle cx="55" cy="55" r="50" fill="none" stroke={P.yellow} strokeWidth="1.5" strokeDasharray="3 5" opacity="0.8"/>
+                <circle cx="55" cy="55" r="38" fill="none" stroke={P.cream} strokeWidth="1.2" strokeDasharray="2 4" opacity="0.6"/>
+                <circle cx="55" cy="55" r="24" fill="none" stroke={P.yellow} strokeWidth="1" strokeDasharray="1 3" opacity="0.5"/>
+                <circle cx="55" cy="55" r="5" fill={P.cream} opacity="0.85"/>
+              </svg>
+            </div>
+          </div>
+        </section>
+        </>
+      );
+    }
+
+    /* ═══════════════ FOOTER ═══════════════ */
+    function Footer() {
+      const { T } = useContext(LangCtx);
+      return (
+        <>
+        <TornEdge from={P.magenta} to={P.black} height={70}/>
+        <footer id="contact" style={{
+          padding: "5rem 1.5rem 3rem", textAlign: "center",
+          background: P.black, color: P.cream, position: "relative",
+        }}>
+          <Halftone color={P.pink} opacity={0.06} size={5}/>
+
+          <svg width="200" height="40" style={{ display: "block", margin: "0 auto 2rem", position: "relative" }}>
+            <path d="M 10 22 Q 50 6, 100 22 T 190 18" fill="none" stroke={P.pink} strokeWidth="2.5" strokeLinecap="round"
+              style={{ strokeDasharray: 260, animation: "scribbleIn 2s ease-out forwards" }}/>
+          </svg>
+
+          <Reveal>
+            <h2 className="anton" style={{
+              fontSize: "clamp(2rem, 4.5vw, 3rem)", color: P.cream,
+              marginBottom: "1rem", letterSpacing: "-0.01em",
+            }}>{T.footer.heading}</h2>
+            <p style={{
+              fontSize: "1.1rem", color: P.cream, opacity: 0.75, lineHeight: 1.7,
+              maxWidth: 540, margin: "0 auto 2rem", fontStyle: "italic",
+            }}>{T.footer.sub}</p>
+            <a href="index.html" target="_blank" rel="noreferrer" className="marker" style={{
+              display: "inline-block", fontSize: "1.5rem", color: P.yellow,
+              textDecoration: "none", padding: "12px 26px",
+              border: `3px solid ${P.yellow}`, background: P.black,
+              boxShadow: `6px 6px 0 ${P.pink}`,
+              transition: "all 0.25s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = P.black; e.currentTarget.style.background = P.yellow; e.currentTarget.style.transform = "translate(-3px,-3px)"; e.currentTarget.style.boxShadow = `9px 9px 0 ${P.pink}`; }}
+              onMouseLeave={e => { e.currentTarget.style.color = P.yellow; e.currentTarget.style.background = P.black; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = `6px 6px 0 ${P.pink}`; }}
+            >{T.footer.backLink}</a>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: 28, marginTop: "2.5rem" }}>
+              <a href="https://www.linkedin.com/in/constanza-kostyushko-a2909b317/" target="_blank" rel="noreferrer"
+                style={{ color: P.cream, fontSize: 13, textDecoration: "none", letterSpacing: "0.04em", borderBottom: `1px solid ${P.cream}88`, paddingBottom: 2 }}
+                onMouseEnter={e => { e.currentTarget.style.color = P.pink; e.currentTarget.style.borderColor = P.pink; }}
+                onMouseLeave={e => { e.currentTarget.style.color = P.cream; e.currentTarget.style.borderColor = P.cream + "88"; }}
+              >LinkedIn</a>
+              <a href="https://www.youtube.com/@ConstanzaKr" target="_blank" rel="noreferrer"
+                style={{ color: P.cream, fontSize: 13, textDecoration: "none", letterSpacing: "0.04em", borderBottom: `1px solid ${P.cream}88`, paddingBottom: 2 }}
+                onMouseEnter={e => { e.currentTarget.style.color = P.pink; e.currentTarget.style.borderColor = P.pink; }}
+                onMouseLeave={e => { e.currentTarget.style.color = P.cream; e.currentTarget.style.borderColor = P.cream + "88"; }}
+              >YouTube</a>
+              <a href="https://mail.google.com/mail/?view=cm&to=coni.nona@gmail.com" target="_blank" rel="noreferrer"
+                style={{ color: P.cream, fontSize: 13, textDecoration: "none", letterSpacing: "0.04em", borderBottom: `1px solid ${P.cream}88`, paddingBottom: 2 }}
+                onMouseEnter={e => { e.currentTarget.style.color = P.pink; e.currentTarget.style.borderColor = P.pink; }}
+                onMouseLeave={e => { e.currentTarget.style.color = P.cream; e.currentTarget.style.borderColor = P.cream + "88"; }}
+              >Email</a>
+            </div>
+
+            <p className="handwritten" style={{
+              marginTop: "3rem", fontSize: 18, color: P.cream, opacity: 0.72, letterSpacing: "0.02em",
+            }}>
+              {T.footer.credit}
+            </p>
+            <p style={{ marginTop: 6, fontSize: 11, color: P.cream, opacity: 0.45, letterSpacing: "0.05em" }}>
+              {T.footer.copyright}
+            </p>
+          </Reveal>
+        </footer>
+        </>
+      );
+    }
+
+    /* ─── ROOT ───────────────────────────────── */
+    function ArtPortfolio() {
+      const [lang, setLang] = useState(() => localStorage.getItem('art-portfolio-lang') || 'en');
+      useEffect(() => { localStorage.setItem('art-portfolio-lang', lang); }, [lang]);
+      const T = TRANSLATIONS[lang];
+
+      // When this page is opened with a hash like #photo or #graphite, React has not
+      // rendered the target section by the time the browser tries to honor the hash.
+      // Re-scroll to it after mount so back-from-subpage links jump to the right place.
+      useEffect(() => {
+        const hash = window.location.hash;
+        if (!hash) return;
+        const tryScroll = () => {
+          const el = document.querySelector(hash);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+            return true;
+          }
+          return false;
+        };
+        // give the layout a tick to settle, then a couple of fallbacks
+        const t1 = setTimeout(tryScroll, 80);
+        const t2 = setTimeout(tryScroll, 400);
+        const t3 = setTimeout(tryScroll, 1000);
+        return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+      }, []);
+
+      return (
+        <LangCtx.Provider value={{ lang, setLang, T }}>
+          <CursorBlob />
+          <Nav />
+          <Hero />
+          <Intro />
+          <FilmSection />
+          <PhotoSection />
+          <GraphiteSection />
+          <SculptureSection />
+          <WatercolorSection />
+          <MarkersSection />
+          <CollagesSection />
+          <DanceSection />
+          <Footer />
+        </LangCtx.Provider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<ArtPortfolio />);
+  </script>
+</body>
+</html>
